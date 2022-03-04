@@ -54,12 +54,23 @@ class QBF:
         assert variable >= 1
         return self._var[variable - 1].quantification
 
+    def get_symbol(self, variable: int):
+        assert variable >= 1
+        return self._var[variable - 1].symbol
+
+    def get_alias(self, variable: int):
+        assert variable >= 1
+        return self._var[variable - 1].alias
+
     def _variable_defined(self, variable: int) -> bool:
         assert variable >= 1
         return variable <= len(self._var)
 
     def variable_count(self) -> int:
         return len(self._var)
+
+    def _literal_to_variable(self, literal):
+        return self._var[_literal_to_index(literal)]
 
     def to_latex(self) -> str:
         return " ".join([
@@ -68,9 +79,26 @@ class QBF:
         ]) + " : " + " \\wedge ".join([
             "(" + " \\vee ".join([
                 ("\\overline{%s} " if literal < 0 else "%s") %
-                self._var[_literal_to_index(literal)].alias for literal in sorted(clause, key=abs)
+                self._literal_to_variable(literal).alias for literal in sorted(clause, key=abs)
             ]) + ")" for clause in self._matrix
         ])
+
+    def construct_p_phi(self):
+
+        p_phi = 1
+
+        for clause in self._matrix:
+            prod = 1
+
+            for literal in sorted(clause, key=abs):
+                if literal >= 1:
+                    prod *= (1 - self._literal_to_variable(literal).symbol)
+                else:
+                    prod *= self._literal_to_variable(literal).symbol
+
+            p_phi *= 1 - prod
+
+        return p_phi
 
 
 def linearity_operator(p, v):
@@ -101,32 +129,31 @@ def construct_formula():
 
 def main():
 
-    x, y, z = sympy.symbols("x y z")
+    qbf = construct_formula()
 
-    p_phi = (1 - (1-x) * y * (1-z)) * (1 - x * (1-y) * (1-z))
+    p = qbf.construct_p_phi()
 
-    l_3 = linearity_operator(p_phi, z).expand()
-    l_23 = linearity_operator(l_3, y).expand()
-    l_123 = linearity_operator(l_23, x).expand()
+    print(p)
 
-    print(l_3)
-    print(l_23)
-    print(l_123)
+    for v in range(qbf.variable_count(), 0, -1):
 
-    fa_l_123 = forall_operator(l_123, z)
-    print("Forall_3", fa_l_123)
+        print("Variables: %d" % v)
+        print("Before linearization:", p.expand())
 
-    l_2_fa_l_123 = linearity_operator(fa_l_123, y).expand()
-    l_12_fa_l_123 = linearity_operator(l_2_fa_l_123, x).expand()
+        for variable_to_linearize in range(v, 0, -1):
+            p = linearity_operator(p, qbf.get_symbol(variable_to_linearize))
+            print("Linearized %s:" % qbf.get_alias(variable_to_linearize), p.expand())
 
-    print(l_2_fa_l_123)
-    print(l_12_fa_l_123)
+        quantification = qbf.get_quantification(v)
 
-    ex_l_12_fa_l_123 = exists_operator(l_12_fa_l_123, y)
-    print("Exists_2", ex_l_12_fa_l_123)
+        if quantification == QBF.Q_FORALL:
+            p = forall_operator(p, qbf.get_symbol(v))
+        else:
+            p = exists_operator(p, qbf.get_symbol(v))
 
-    l_1_ex_l_12_fa_l_123 = linearity_operator(ex_l_12_fa_l_123, x)
-    print(l_1_ex_l_12_fa_l_123)
+        print("Applied quantification:", p)
+
+    print("Final result:", p)
 
 
 if __name__ == "__main__":

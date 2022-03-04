@@ -10,7 +10,8 @@ class TQBFProtocol(Scene):
 
         text = MathTex(qbf.to_latex())
 
-        self.play(Write(text))
-        self.wait(2)
+        p_phi = MathTex(sympy.latex(qbf.construct_p_phi()))
 
+        group = Group(text, p_phi)
 
+        self.add(group.arrange(DOWN, buff=5))
