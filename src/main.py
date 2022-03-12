@@ -1,37 +1,27 @@
 from formulas import *
 from qbf import *
 from prover import HonestProver
+from prime import next_prime
 
 
 def main():
 
     qbf = extended_equality_formula()
 
-    cur_p = qbf.construct_p_phi()
+    p = next_prime(1 << qbf.variable_count())
 
-    prover = HonestProver(qbf)
+    print("Prime number for the proof: %d" % p)
 
-    print(cur_p)
+    prover = HonestProver(qbf, p)
 
-    for v in range(qbf.variable_count(), 0, -1):
+    print("----------------")
 
-        print("Variables: %d" % v)
-        print("Before linearization:", cur_p.expand())
+    for v in range(1, qbf.variable_count() + 1):
 
-        for variable_to_linearize in range(v, 0, -1):
-            cur_p = prover.get_linearized_polynomial(variable_to_linearize, cur_p)
-            print("Linearized %s:" % qbf.get_alias(variable_to_linearize), cur_p.expand())
+        print("Variable: %d" % v)
 
-        quantification = qbf.get_quantification(v)
-
-        if quantification == QBF.Q_FORALL:
-            cur_p = prover.get_forall_polynomial(v, cur_p)
-        else:
-            cur_p = prover.get_exists_polynomial(v, cur_p)
-
-        print("Applied quantification:", cur_p)
-
-    print("Final result:", cur_p)
+        for variable_to_linearize in range(1, v + 1):
+            print("Linearizing %s" % qbf.get_alias(variable_to_linearize))
 
 
 if __name__ == "__main__":

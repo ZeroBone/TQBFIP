@@ -83,7 +83,7 @@ class QBF:
             ]) + ")" for clause in self._matrix
         ])
 
-    def construct_p_phi(self):
+    def arithmetize_matrix(self):
 
         p_phi = 1
 
@@ -99,3 +99,6 @@ class QBF:
             p_phi *= 1 - prod
 
         return p_phi
+
+    def arithmetize(self, starting_at_variable: int, linearizing_variable: int):
+        pass
