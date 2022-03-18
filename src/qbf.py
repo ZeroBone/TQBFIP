@@ -58,7 +58,7 @@ class QBF:
         assert variable >= 1
         return self._var[variable - 1].symbol
 
-    def get_alias(self, variable: int):
+    def get_alias(self, variable: int) -> str:
         assert variable >= 1
         return self._var[variable - 1].alias
 

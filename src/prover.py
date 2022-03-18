@@ -68,6 +68,7 @@ class HonestProver(Prover):
             if quantification == QBF.Q_FORALL:
                 cur_p = forall_operator(cur_p, self.qbf.get_symbol(v))
             else:
+                assert quantification == QBF.Q_EXISTS
                 cur_p = exists_operator(cur_p, self.qbf.get_symbol(v))
 
             proof_operators[ProofOperator(v)] = cur_p
@@ -76,7 +77,9 @@ class HonestProver(Prover):
 
         print("Final result:", cur_p)
         for k in proof_operators.keys():
-            print(k, proof_operators[k])
+            print("%s -> %d" % (qbf.get_alias(k.v), k.lv), proof_operators[k])
+
+        self._proof_operators = proof_operators
 
     def get_operator_polynomial(self, operator: ProofOperator):
-        pass
+        return self._proof_operators[operator]
