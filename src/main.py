@@ -7,8 +7,6 @@ from random import Random
 
 def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
 
-    print("----------------")
-
     c = 1
 
     rng = Random(seed)
@@ -80,9 +78,11 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
 
 def main():
 
-    qbf = extended_equality_formula()
+    # qbf = extended_equality_formula()
+    qbf = example_2_formula()
 
     p = next_prime(1 << qbf.variable_count())
+    # p = 10000019
 
     print("Prime number for the proof: %d" % p)
 
