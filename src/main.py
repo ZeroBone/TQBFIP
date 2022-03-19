@@ -17,9 +17,11 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
 
         v_symbol = qbf.get_symbol(v)
 
-        print("Variable: %d Random choices:" % v, random_choices)
+        print("Variable: %s Random choices:" % qbf.get_alias(v), random_choices)
 
         s = prover.get_operator_polynomial(ProofOperator(v), random_choices)
+
+        print("Prover sent s(%s) =" % qbf.get_alias(v), s)
 
         quantification = qbf.get_quantification(v)
 
@@ -63,7 +65,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
             print("Linearizing %s" % qbf.get_alias(variable_to_linearize))
 
             s = prover.get_operator_polynomial(ProofOperator(v, variable_to_linearize), random_choices)
-            print(s)
+            print("Prover sent s(%s) =" % qbf.get_alias(variable_to_linearize), s)
 
             s_0 = int(s.subs(lin_v_symbol, 0))
             s_1 = int(s.subs(lin_v_symbol, 1))
@@ -76,6 +78,21 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
 
             if check_sum != c:
                 return False
+
+            # choose a from F_p
+            a = rng.randrange(p)
+            random_choices[variable_to_linearize] = a
+
+            print(
+                "Re-chose a = %d for variable %s (while linearizing it)" %
+                (a, qbf.get_alias(variable_to_linearize))
+            )
+            print("s =", s)
+
+            # calculate c = s(a)
+            c = int(s.subs(lin_v_symbol, a)) % p
+
+            print("s(a) = %d" % c)
 
     return True
 

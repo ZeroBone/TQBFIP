@@ -43,10 +43,10 @@ class ProofOperator:
         quantification = context.get_quantification(self.v)
 
         if quantification == QBF.Q_FORALL:
-            return "∀{%s}" % context.get_alias(self.v)
+            return "A{%s}" % context.get_alias(self.v)
         else:
             assert quantification == QBF.Q_EXISTS
-            return "∃{%s}" % context.get_alias(self.v)
+            return "E{%s}" % context.get_alias(self.v)
 
 
 class Prover:
@@ -107,7 +107,7 @@ class HonestProver(Prover):
 
         for variable, a in random_choices.items():
 
-            if operator.is_linearity_operator_on(operator.v):
+            if operator.is_linearity_operator_on(variable):
                 continue
 
             polynomial_after_operator = polynomial_after_operator.subs(
