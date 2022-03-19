@@ -16,7 +16,7 @@ class QBFVariable:
     def __init__(self, quantification: bool, alias: str):
         self.quantification = quantification
         self.alias = alias
-        self.symbol = sympy.symbols(self.alias)
+        self.symbol = sympy.symbols(self.alias, integer=True)
 
 
 class QBF:
