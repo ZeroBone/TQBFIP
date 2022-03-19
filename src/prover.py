@@ -16,6 +16,7 @@ def exists_operator(p, v):
 class ProofOperator:
 
     def __init__(self, variable: int, linearizing_variable: int = 0):
+        assert variable >= 1
         self.v = variable
         self.lv = linearizing_variable  # = 0 if we are applying quantification to the variable
 
@@ -30,8 +31,9 @@ class ProofOperator:
     def __str__(self):
         return "(%d, %d)" % (self.v, self.lv)
 
-    def is_linearity_operator(self) -> bool:
-        return self.lv == 0
+    def is_linearity_operator_on(self, variable: int) -> bool:
+        assert variable != 0
+        return self.lv == variable
 
     def to_string(self, context: QBF) -> str:
 
@@ -104,6 +106,10 @@ class HonestProver(Prover):
         polynomial_after_operator = self._polynomial_after_operator[operator]
 
         for variable, a in random_choices.items():
+
+            if operator.is_linearity_operator_on(operator.v):
+                continue
+
             polynomial_after_operator = polynomial_after_operator.subs(
                 self.qbf.get_symbol(variable),
                 a

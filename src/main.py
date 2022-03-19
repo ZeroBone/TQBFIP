@@ -46,11 +46,15 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
 
         # choose a from F_p
         a = rng.randrange(p)
-
         random_choices[v] = a
+
+        print("Chose a = %d for variable %s" % (a, qbf.get_alias(v)))
+        print("s =", s)
 
         # calculate c = s(a)
         c = int(s.subs(v_symbol, a)) % p
+
+        print("s(a) = %d" % c)
 
         for variable_to_linearize in range(1, v + 1):
 
@@ -64,11 +68,11 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
             s_0 = int(s.subs(lin_v_symbol, 0))
             s_1 = int(s.subs(lin_v_symbol, 1))
 
-            a_1 = random_choices[variable_to_linearize]
+            a_for_x = random_choices[variable_to_linearize]
 
-            check_sum = (a_1 * s_0 + (1 - a_1) * s_1) % p
+            check_sum = (a_for_x * s_1 + (1 - a_for_x) * s_0) % p
 
-            print("a_1 * s_0 + (1 - a_1) * s_1 = %d, expecting to be equal to c = %d" % (check_sum, c))
+            print("a_1 * s_1 + (1 - a_1) * s_0 = %d, expecting to be equal to c = %d" % (check_sum, c))
 
             if check_sum != c:
                 return False
@@ -82,7 +86,6 @@ def main():
     qbf = example_2_formula()
 
     p = next_prime(1 << qbf.variable_count())
-    # p = 10000019
 
     print("Prime number for the proof: %d" % p)
 
