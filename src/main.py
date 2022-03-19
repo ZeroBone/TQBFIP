@@ -15,8 +15,6 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
 
     random_choices = {}
 
-    verification_success = True
-
     for v in range(1, qbf.variable_count() + 1):
 
         v_symbol = qbf.get_symbol(v)
@@ -35,8 +33,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
             print("s(0) * s(1) = %d, expecting to be equal to c = %d" % (check_product, c))
 
             if check_product != c:
-                verification_success = False
-                break
+                return False
 
         else:
             assert quantification == QBF.Q_EXISTS
@@ -47,8 +44,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
             print("s(0) + s(1) = %d, expecting to be equal to c = %d" % (check_sum, c))
 
             if check_sum != c:
-                verification_success = False
-                break
+                return False
 
         # choose a from F_p
         a = rng.randrange(p)
@@ -59,12 +55,27 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
         c = int(s.subs(v_symbol, a)) % p
 
         for variable_to_linearize in range(1, v + 1):
+
+            lin_v_symbol = qbf.get_symbol(variable_to_linearize)
+
             print("Linearizing %s" % qbf.get_alias(variable_to_linearize))
 
             s = prover.get_operator_polynomial(ProofOperator(v, variable_to_linearize), random_choices)
             print(s)
 
-    return verification_success
+            s_0 = int(s.subs(lin_v_symbol, 0))
+            s_1 = int(s.subs(lin_v_symbol, 1))
+
+            a_1 = random_choices[variable_to_linearize]
+
+            check_sum = (a_1 * s_0 + (1 - a_1) * s_1) % p
+
+            print("a_1 * s_0 + (1 - a_1) * s_1 = %d, expecting to be equal to c = %d" % (check_sum, c))
+
+            if check_sum != c:
+                return False
+
+    return True
 
 
 def main():

@@ -92,10 +92,10 @@ class HonestProver(Prover):
 
             print("Applied quantification:", cur_p)
 
-        print("Final result:", cur_p)
-
         for k in polynomial_after_operator.keys():
             print("%s -> %s" % (qbf.get_alias(k.v), k.to_string(qbf)), polynomial_after_operator[k])
+
+        print("Final result:", cur_p)
 
         self._polynomial_after_operator = polynomial_after_operator
 
