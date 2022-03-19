@@ -55,6 +55,9 @@ class Prover:
         self.qbf = qbf
         self.p = p
 
+    def get_value_of_entire_polynomial(self) -> int:
+        raise NotImplementedError()
+
     def get_operator_polynomial(self, operator: ProofOperator, verifiers_random_choices: dict):
         raise NotImplementedError()
 
@@ -67,8 +70,6 @@ class HonestProver(Prover):
         polynomial_after_operator = {}
 
         cur_p = qbf.arithmetize_matrix()
-
-        print(cur_p)
 
         for v in range(qbf.variable_count(), 0, -1):
 
@@ -97,9 +98,14 @@ class HonestProver(Prover):
         for k in polynomial_after_operator.keys():
             print("%s -> %s" % (qbf.get_alias(k.v), k.to_string(qbf)), polynomial_after_operator[k])
 
-        print("Final result:", cur_p)
+        self.entire_polynomial_value = int(cur_p)
+
+        print("Value of entire polynomial = %d" % self.entire_polynomial_value)
 
         self._polynomial_after_operator = polynomial_after_operator
+
+    def get_value_of_entire_polynomial(self) -> int:
+        return self.entire_polynomial_value
 
     def get_operator_polynomial(self, operator: ProofOperator, random_choices: dict):
 

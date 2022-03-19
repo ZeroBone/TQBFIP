@@ -1,13 +1,18 @@
 from formulas import *
 from qbf import *
 from prover import Prover, HonestProver, ProofOperator
-from prime import next_prime
 from random import Random
 
 
 def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
 
-    c = 1
+    # first we ask the prover what he considers to be the value of the entire polynomial
+    c = prover.get_value_of_entire_polynomial()
+
+    if c == 0:
+        # this is absurd, the prover has directly confessed that he
+        # would like to prove that the QBF sentence is false
+        return False
 
     rng = Random(seed)
 
@@ -99,14 +104,13 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None) -> bool:
 
 def main():
 
-    # qbf = extended_equality_formula()
     qbf = example_2_formula()
 
-    p = next_prime(1 << qbf.variable_count())
-
-    print("Prime number for the proof: %d" % p)
+    p = qbf.compute_prime_for_protocol()
 
     prover = HonestProver(qbf, p)
+
+    print("Prime number for the proof: %d" % p)
 
     accepted = run_verifier(qbf, prover, p, 0xcafe)
 

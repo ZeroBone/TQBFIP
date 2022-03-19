@@ -1,4 +1,5 @@
 import sympy
+from prime import next_prime
 
 
 def _literal_to_variable(literal: int) -> int:
@@ -100,5 +101,5 @@ class QBF:
 
         return p_phi
 
-    def arithmetize(self, starting_at_variable: int, linearizing_variable: int):
-        pass
+    def compute_prime_for_protocol(self):
+        return next_prime(1 << self.variable_count())

@@ -16,7 +16,7 @@ def simple_equality_formula():
     return qbf
 
 
-def extended_equality_formula():
+def extended_equality_formula(make_unsat: bool = False):
 
     qbf = QBF()
 
@@ -28,6 +28,9 @@ def extended_equality_formula():
 
     qbf.add_clause({x, -y, z})
     qbf.add_clause({-x, y, z})
+
+    if make_unsat:
+        qbf.add_clause({x, y})
 
     return qbf
 
@@ -46,5 +49,17 @@ def example_2_formula():
     qbf.add_clause({x, y, -z})
     qbf.add_clause({-x, -y, -w})
     qbf.add_clause({-y, w, z})
+
+    return qbf
+
+
+def simple_or_formula(n: int):
+
+    qbf = QBF()
+
+    for x_i in range(1, n + 1):
+        qbf.add_variable(x_i, QBF.Q_EXISTS, "x_%d" % x_i)
+
+    qbf.add_clause(set([x_i for x_i in range(1, n + 1)]))
 
     return qbf
