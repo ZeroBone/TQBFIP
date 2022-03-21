@@ -75,7 +75,7 @@ class HonestProver(Prover):
 
         cur_p = qbf.arithmetize_matrix()
 
-        for v in range(qbf.variable_count(), 0, -1):
+        for v in range(qbf.get_variable_count(), 0, -1):
 
             print("Variables: %d" % v)
             print("Before linearization:", cur_p.expand())

@@ -20,6 +20,12 @@ class QBFVariable:
         self.symbol = sympy.symbols(self.alias, integer=True)
 
 
+def _intersperse(arr: list, separator) -> list:
+    result = [separator] * (len(arr) * 2 - 1)
+    result[0::2] = arr
+    return result
+
+
 class QBF:
 
     Q_EXISTS = False
@@ -67,22 +73,22 @@ class QBF:
         assert variable >= 1
         return variable <= len(self._var)
 
-    def variable_count(self) -> int:
+    def get_variable_count(self) -> int:
         return len(self._var)
 
     def _literal_to_variable(self, literal):
         return self._var[_literal_to_index(literal)]
 
-    def to_latex(self) -> str:
-        return " ".join([
+    def to_latex_array(self) -> list:
+        return [" ".join([
             ("\\forall " if self._var[i].quantification == QBF.Q_FORALL else "\\exists ") + self._var[i].alias
-            for i in range(self.variable_count())
-        ]) + " : " + " \\wedge ".join([
+            for i in range(self.get_variable_count())
+        ]) + " : ", *_intersperse([
             "(" + " \\vee ".join([
-                ("\\overline{%s} " if literal < 0 else "%s") %
+                ("\\overline{%s}" if literal < 0 else "%s") %
                 self._literal_to_variable(literal).alias for literal in sorted(clause, key=abs)
             ]) + ")" for clause in self._matrix
-        ])
+        ], " \\wedge ")]
 
     def arithmetize_matrix(self):
 
@@ -101,5 +107,22 @@ class QBF:
 
         return p_phi
 
+    def _latex_clause_arithmetization(self, clause) -> str:
+
+        return "1 - " + " ".join([
+            ("(1 - %s)" if literal >= 1 else "%s") % self._literal_to_variable(literal).alias
+            for literal in sorted(clause, key=abs)
+        ])
+
+    def get_arithmetization_latex_array(self):
+
+        return _intersperse(
+            ["&(%s)" % self._latex_clause_arithmetization(clause) for clause in self._matrix],
+            "\\cdot \\\\"
+        )
+
     def compute_prime_for_protocol(self):
-        return next_prime(1 << self.variable_count())
+        return next_prime(1 << self.get_variable_count())
+
+    def get_clause_count(self) -> int:
+        return len(self._matrix)

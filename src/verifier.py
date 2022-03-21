@@ -25,7 +25,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):
 
     random_choices = {}
 
-    for v in range(1, qbf.variable_count() + 1):
+    for v in range(1, qbf.get_variable_count() + 1):
 
         v_symbol = qbf.get_symbol(v)
 
