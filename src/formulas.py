@@ -53,7 +53,7 @@ def example_2_formula():
     return qbf
 
 
-def simple_or_formula(n: int):
+def single_clause_or_formula(n: int):
 
     qbf = QBF()
 

@@ -35,18 +35,22 @@ class ProofOperator:
         assert variable != 0
         return self.lv == variable
 
-    def to_string(self, context: QBF) -> str:
+    def to_string(self, context: QBF, latex: bool = False) -> str:
 
         if self.lv != 0:
-            return "L{%s}" % context.get_alias(self.lv)
+            return "L_{%s}" % context.get_alias(self.lv)
 
         quantification = context.get_quantification(self.v)
 
         if quantification == QBF.Q_FORALL:
-            return "A{%s}" % context.get_alias(self.v)
+            if latex:
+                return "\\forall_{%s}" % context.get_alias(self.v)
+            return "A_{%s}" % context.get_alias(self.v)
         else:
             assert quantification == QBF.Q_EXISTS
-            return "E{%s}" % context.get_alias(self.v)
+            if latex:
+                return "\\exists_{%s}" % context.get_alias(self.v)
+            return "E_{%s}" % context.get_alias(self.v)
 
 
 class Prover:

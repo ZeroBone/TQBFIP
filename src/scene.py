@@ -1,17 +1,23 @@
 from manim import *
-from main import *
+from formulas import *
+from prover import HonestProver
+from verifier import run_verifier
 
 
 class TQBFProtocol(Scene):
 
     def construct(self):
 
-        qbf = construct_formula()
+        qbf = example_2_formula()
 
-        text = MathTex(qbf.to_latex())
+        p = qbf.compute_prime_for_protocol()
 
-        p_phi = MathTex(sympy.latex(qbf.arithmetize_matrix()))
+        prover = HonestProver(qbf, p)
 
-        group = Group(text, p_phi)
+        qbf_formula = MathTex(qbf.to_latex())
+        qbf_formula.to_edge(UP)
 
-        self.add(group.arrange(DOWN, buff=5))
+        # p_phi = MathTex(sympy.latex(qbf.arithmetize_matrix()))
+
+        self.play(Write(qbf_formula))
+        self.wait(2)
