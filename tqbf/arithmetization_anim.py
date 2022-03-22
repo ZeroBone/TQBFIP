@@ -11,7 +11,6 @@ class ArithmetizationScene(Scene):
         color_palette = [BLUE_C, RED_C, GREEN_C, GOLD_C]
 
         qbf_formula = MathTex(r"\varphi =", *qbf.to_latex_array())
-        qbf_formula.to_edge(UP)
 
         p_phi = MathTex(
             r"P_{\varphi}(%s)" % ",".join([
