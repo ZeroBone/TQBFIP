@@ -14,11 +14,14 @@ class ArithmetizationScene(Scene):
         qbf_formula.to_edge(UP)
 
         p_phi = MathTex(
-            r"P_{\varphi}(%s) = \quad " % ",".join([
+            r"P_{\varphi}(%s)" % ",".join([
                 qbf.get_alias(v + 1) for v in range(qbf.get_variable_count())
             ]),
+            r"= \quad",
             *qbf.get_matrix_arithmetization_latex_array()
         )
+
+        p_phi[0].set_color(PURPLE_C)
 
         equivalence_formula_arr = qbf.get_arithmetization_latex_array()
         equivalence_formula_arr[0] = "&" + equivalence_formula_arr[0]
@@ -47,7 +50,7 @@ class ArithmetizationScene(Scene):
         VGroup(qbf_formula, p_phi, equivalence_formula).arrange(DOWN)
 
         self.play(Write(qbf_formula))
-        self.play(Write(p_phi[:1]))
+        self.play(Write(p_phi[:2]))
 
         self.wait(.5)
 
@@ -57,7 +60,7 @@ class ArithmetizationScene(Scene):
 
         for c in range(qbf.get_clause_count()):
 
-            p_i = 1 + 2 * c
+            p_i = 2 + 2 * c
             qbf_i = qbf.get_variable_count() + 2 + 2 * c
 
             if c != 0:

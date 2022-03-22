@@ -26,6 +26,13 @@ class QBFVariable:
 
         return "%s_{b_{%d}=0}^1" % (latex_op_sym, b_index)
 
+    def get_operator_symbol(self) -> str:
+
+        if self.quantification == QBF.Q_FORALL:
+            return r"\forall_{%s}" % self.alias
+
+        return r"\exists_{%s}" % self.alias
+
 
 def _intersperse(arr: list, separator) -> list:
     result = [separator] * (len(arr) * 2 - 1)
@@ -76,6 +83,10 @@ class QBF:
         assert variable >= 1
         return self._var[variable - 1].alias
 
+    def get_operator(self, variable: int) -> str:
+        assert variable >= 1
+        return self._var[variable - 1].get_operator_symbol()
+
     def _variable_defined(self, variable: int) -> bool:
         assert variable >= 1
         return variable <= len(self._var)
@@ -88,14 +99,14 @@ class QBF:
 
     def to_latex_array(self) -> list:
         return [
-            ("\\forall " if self._var[i].quantification == QBF.Q_FORALL else "\\exists ") + self._var[i].alias
+            (r"\forall " if self._var[i].quantification == QBF.Q_FORALL else r"\exists ") + self._var[i].alias
             for i in range(self.get_variable_count())
         ] + [":"] + _intersperse([
             "(" + " \\vee ".join([
-                ("\\overline{%s}" if literal < 0 else "{%s}") %
+                (r"\overline{%s}" if literal < 0 else "%s") %
                 self._literal_to_variable(literal).alias for literal in sorted(clause, key=abs)
             ]) + ")" for clause in self._matrix
-        ], " \\wedge ")
+        ], r" \wedge ")
 
     def arithmetize_matrix(self):
 
@@ -125,8 +136,14 @@ class QBF:
 
         return _intersperse(
             ["&(%s)" % self._latex_clause_arithmetization(clause) for clause in self._matrix],
-            "\\cdot \\\\"
+            r"\cdot \\"
         )
+
+    def compute_prime_for_protocol(self):
+        return next_prime(1 << self.get_variable_count())
+
+    def get_clause_count(self) -> int:
+        return len(self._matrix)
 
     def get_arithmetization_latex_array(self):
 
@@ -136,9 +153,3 @@ class QBF:
             r"P_{\varphi}(%s)" % ",".join(("b_{%d}" % i for i in range(1, self.get_variable_count() + 1))),
             r"\neq 0"
         ]
-
-    def compute_prime_for_protocol(self):
-        return next_prime(1 << self.get_variable_count())
-
-    def get_clause_count(self) -> int:
-        return len(self._matrix)
