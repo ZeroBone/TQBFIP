@@ -8,10 +8,9 @@ class ArithmetizationScene(Scene):
 
         qbf = example_2_formula()
 
-        qbf_formula_arr = qbf.to_latex_array()
-        qbf_formula_arr[0] = r"\varphi = " + qbf_formula_arr[0]
+        color_palette = [BLUE_C, RED_C, GREEN_C, GOLD_C]
 
-        qbf_formula = MathTex(*qbf_formula_arr)
+        qbf_formula = MathTex(r"\varphi =", *qbf.to_latex_array())
         qbf_formula.to_edge(UP)
 
         p_phi = MathTex(
@@ -29,6 +28,22 @@ class ArithmetizationScene(Scene):
             *equivalence_formula_arr
         )
 
+        for v in range(qbf.get_variable_count()):
+            equivalence_formula[1 + v].set_color(color_palette[v % len(color_palette)])
+
+        equivalence_formula[qbf.get_variable_count() + 1].set_color(PURPLE_A)
+
+        for v in range(qbf.get_variable_count()):
+            qbf_formula.set_color_by_tex(
+                "%s" % qbf.get_alias(v + 1),
+                color_palette[v % len(color_palette)]
+            )
+
+        qbf_formula.set_color_by_tex(r"\wedge", TEAL_A)
+
+        for c in range(qbf.get_clause_count()):
+            qbf_formula[qbf.get_variable_count() + 2 + 2 * c].set_color(PURPLE_A)
+
         VGroup(qbf_formula, p_phi, equivalence_formula).arrange(DOWN)
 
         self.play(Write(qbf_formula))
@@ -36,21 +51,22 @@ class ArithmetizationScene(Scene):
 
         self.wait(.5)
 
-        clause_frame = SurroundingRectangle(qbf_formula[1], buff=.1)
+        clause_frame = SurroundingRectangle(qbf_formula[qbf.get_variable_count() + 2], buff=.1)
 
         self.play(Create(clause_frame))
 
         for c in range(qbf.get_clause_count()):
 
-            i = 1 + 2 * c
+            p_i = 1 + 2 * c
+            qbf_i = qbf.get_variable_count() + 2 + 2 * c
 
             if c != 0:
-                next_clause_frame = SurroundingRectangle(qbf_formula[i], buff=.1)
+                next_clause_frame = SurroundingRectangle(qbf_formula[qbf_i], buff=.1)
                 self.play(ReplacementTransform(clause_frame, next_clause_frame))
                 clause_frame = next_clause_frame
 
             self.wait(.125)
-            self.play(ReplacementTransform(qbf_formula[i].copy(), p_phi[i]))
+            self.play(ReplacementTransform(qbf_formula[qbf_i].copy(), p_phi[p_i]))
             self.wait(1)
 
         self.play(FadeOut(clause_frame), Write(equivalence_formula))

@@ -87,15 +87,15 @@ class QBF:
         return self._var[_literal_to_index(literal)]
 
     def to_latex_array(self) -> list:
-        return [" ".join([
+        return [
             ("\\forall " if self._var[i].quantification == QBF.Q_FORALL else "\\exists ") + self._var[i].alias
             for i in range(self.get_variable_count())
-        ]) + " : ", *_intersperse([
+        ] + [":"] + _intersperse([
             "(" + " \\vee ".join([
-                ("\\overline{%s}" if literal < 0 else "%s") %
+                ("\\overline{%s}" if literal < 0 else "{%s}") %
                 self._literal_to_variable(literal).alias for literal in sorted(clause, key=abs)
             ]) + ")" for clause in self._matrix
-        ], " \\wedge ")]
+        ], " \\wedge ")
 
     def arithmetize_matrix(self):
 
