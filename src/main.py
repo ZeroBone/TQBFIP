@@ -17,7 +17,7 @@ def _configure_loggers():
         fh = logging.FileHandler(os.path.join(_resolve_root(), "%s.log" % log_module), mode="w")
         fh.setLevel(logging.DEBUG)
 
-        formatter = logging.Formatter("[%(levelname)7s]: %(message)s")
+        formatter = logging.Formatter("%(message)s")
         fh.setFormatter(formatter)
 
         logger = logging.getLogger(log_module)
@@ -42,7 +42,8 @@ def main():
 
     accepted = run_verifier(qbf, prover, p, 0xcafe)
 
-    logger.info("Verifier: %s", "accepts" if accepted else "rejects")
+    logger.info("-" * 30)
+    logger.info("[V]: Proof %s.", "accepted" if accepted else "rejected")
 
 
 if __name__ == "__main__":

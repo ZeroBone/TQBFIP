@@ -7,14 +7,19 @@ from prover import Prover, ProofOperator
 logger = logging.getLogger("protocol")
 
 
+def _log_random_choices(qbf: QBF, random_choices):
+    log_str = ", ".join(("%s := %d" % (qbf.get_alias(var), val) for var, val in random_choices.items()))
+    logger.info("[V]: Random choices: %s", log_str if log_str else "none")
+
+
 def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):
 
-    logger.info("[V]: asks P for the value of the entire polynomial")
+    logger.info("[V]: Asking prover to send value of the entire polynomial")
 
     # first we ask the prover what he considers to be the value of the entire polynomial
     c = prover.get_value_of_entire_polynomial()
 
-    logger.info("[P]: Value = %d" % c)
+    logger.info("[P]: Value = %d =: c" % c)
 
     if c == 0:
         # this is absurd, the prover has directly confessed that he
@@ -31,12 +36,12 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):
 
         logger.info("-" * 30)
         logger.info("Starting new round. Current operator: %s", ProofOperator(v).to_string(qbf))
-        logger.info("[V]: Random choices: %s", random_choices)
+        _log_random_choices(qbf, random_choices)
         logger.info("[V]: Asking prover to send s(%s) = h(%s)", qbf.get_alias(v), qbf.get_alias(v))
 
         s = prover.get_operator_polynomial(ProofOperator(v), random_choices)
 
-        logger.info("[P]: s(%s) = %s", qbf.get_alias(v), s)
+        logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(v), s)
 
         quantification = qbf.get_quantification(v)
 
@@ -70,12 +75,12 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):
         random_choices[v] = a
 
         logger.info("[V]: Chose a = %d for variable %s", a, qbf.get_alias(v))
-        logger.info("[V]: s = %s", s)
+        _log_random_choices(qbf, random_choices)
 
         # calculate c = s(a)
         c = int(s.subs(v_symbol, a)) % p
 
-        logger.info("[V]: s(a) = %d", c)
+        logger.info("[V]: s(a) = %d =: c", c)
 
         for variable_to_linearize in range(1, v + 1):
 
@@ -84,7 +89,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):
             logger.info("-" * 30)
             logger.info(
                 "Starting new round. Current operator: %s",
-                ProofOperator(variable_to_linearize).to_string(qbf)
+                ProofOperator(v, variable_to_linearize).to_string(qbf)
             )
             logger.info(
                 "[V]: Asking prover to send s(%s) = h(%s)",
@@ -94,7 +99,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):
 
             s = prover.get_operator_polynomial(ProofOperator(v, variable_to_linearize), random_choices)
 
-            logger.info("[P]: s(%s) = %s", qbf.get_alias(variable_to_linearize), s)
+            logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(variable_to_linearize), s)
 
             s_0 = int(s.subs(lin_v_symbol, 0))
             s_1 = int(s.subs(lin_v_symbol, 1))
@@ -119,11 +124,11 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):
                 a,
                 qbf.get_alias(variable_to_linearize)
             )
-            logger.info("[V]: s = %s", s)
+            _log_random_choices(qbf, random_choices)
 
             # calculate c = s(a)
             c = int(s.subs(lin_v_symbol, a)) % p
 
-            logger.info("[V]: s(a) = %d" % c)
+            logger.info("[V]: s(a) = %d =: c" % c)
 
     return True
