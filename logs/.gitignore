@@ -1,0 +1,3 @@
+# The purpose of this .gitignore is to ensure that the logs directory is not empty
+# so that git doesn't ignore it
+*.log

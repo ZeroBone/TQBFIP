@@ -1,8 +1,7 @@
 import logging
 from qbf import QBF
 
-
-lp = logging.getLogger("prover")
+logger = logging.getLogger("prover")
 
 
 def linearity_operator(p, v):
@@ -79,7 +78,7 @@ class HonestProver(Prover):
 
         cur_p = qbf.arithmetize_matrix()
 
-        lp.info("Printing (in reverse order) the operator followed by the "
+        logger.info("Printing (in reverse order) the operator followed by the "
                     "polynomial to which all further operators evaluate")
 
         # iterate over the proof operator sequence, in reverse order
@@ -89,7 +88,7 @@ class HonestProver(Prover):
                 current_operator = ProofOperator(v, variable_to_linearize)
                 polynomial_after_operator[current_operator] = cur_p
 
-                lp.info("%s: %s", current_operator.to_string(qbf), cur_p)
+                logger.info("%s: %s", current_operator.to_string(qbf), cur_p)
 
                 cur_p = linearity_operator(cur_p, self.qbf.get_symbol(variable_to_linearize))
                 # cur_p is now a poynomial where variable_to_linearize is linearized
@@ -97,7 +96,7 @@ class HonestProver(Prover):
             current_operator = ProofOperator(v)
             polynomial_after_operator[current_operator] = cur_p
 
-            lp.info("%s: %s", current_operator.to_string(qbf), cur_p)
+            logger.info("%s: %s", current_operator.to_string(qbf), cur_p)
 
             quantification = qbf.get_quantification(v)
 
@@ -109,12 +108,9 @@ class HonestProver(Prover):
 
             # cur_p is now a polynomial with the quantification applied
 
-        for k in polynomial_after_operator.keys():
-            print("%s -> %s" % (qbf.get_alias(k.v), k.to_string(qbf)), polynomial_after_operator[k])
-
         self.entire_polynomial_value = int(cur_p)
 
-        lp.info("Value of entire polynomial = %d", self.entire_polynomial_value)
+        logger.info("Value of entire polynomial = %d", self.entire_polynomial_value)
 
         self._polynomial_after_operator = polynomial_after_operator
 
