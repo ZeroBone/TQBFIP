@@ -20,7 +20,7 @@ class ArithmetizationScene(Scene):
             *qbf.get_matrix_arithmetization_latex_array()
         )
 
-        p_phi[0].set_color(PURPLE_C)
+        p_phi[0].set_color(PURPLE_A)
 
         equivalence_formula_arr = qbf.get_arithmetization_latex_array()
         equivalence_formula_arr[0] = "&" + equivalence_formula_arr[0]

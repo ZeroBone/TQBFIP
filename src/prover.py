@@ -1,4 +1,8 @@
+import logging
 from qbf import QBF
+
+
+lp = logging.getLogger("prover")
 
 
 def linearity_operator(p, v):
@@ -75,19 +79,25 @@ class HonestProver(Prover):
 
         cur_p = qbf.arithmetize_matrix()
 
+        lp.info("Printing (in reverse order) the operator followed by the "
+                    "polynomial to which all further operators evaluate")
+
+        # iterate over the proof operator sequence, in reverse order
         for v in range(qbf.get_variable_count(), 0, -1):
 
-            print("Variables: %d" % v)
-            print("Before linearization:", cur_p.expand())
-
             for variable_to_linearize in range(v, 0, -1):
+                current_operator = ProofOperator(v, variable_to_linearize)
+                polynomial_after_operator[current_operator] = cur_p
 
-                polynomial_after_operator[ProofOperator(v, variable_to_linearize)] = cur_p
+                lp.info("%s: %s", current_operator.to_string(qbf), cur_p)
 
                 cur_p = linearity_operator(cur_p, self.qbf.get_symbol(variable_to_linearize))
-                print("Linearized %s:" % qbf.get_alias(variable_to_linearize), cur_p.expand())
+                # cur_p is now a poynomial where variable_to_linearize is linearized
 
-            polynomial_after_operator[ProofOperator(v)] = cur_p
+            current_operator = ProofOperator(v)
+            polynomial_after_operator[current_operator] = cur_p
+
+            lp.info("%s: %s", current_operator.to_string(qbf), cur_p)
 
             quantification = qbf.get_quantification(v)
 
@@ -97,14 +107,14 @@ class HonestProver(Prover):
                 assert quantification == QBF.Q_EXISTS
                 cur_p = exists_operator(cur_p, self.qbf.get_symbol(v))
 
-            print("Applied quantification:", cur_p)
+            # cur_p is now a polynomial with the quantification applied
 
         for k in polynomial_after_operator.keys():
             print("%s -> %s" % (qbf.get_alias(k.v), k.to_string(qbf)), polynomial_after_operator[k])
 
         self.entire_polynomial_value = int(cur_p)
 
-        print("Value of entire polynomial = %d" % self.entire_polynomial_value)
+        lp.info("Value of entire polynomial = %d", self.entire_polynomial_value)
 
         self._polynomial_after_operator = polynomial_after_operator
 

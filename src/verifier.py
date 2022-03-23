@@ -4,7 +4,7 @@ from qbf import QBF
 from prover import Prover, ProofOperator
 
 
-logger = logging.getLogger("tqbf_protocol")
+logger = logging.getLogger("protocol")
 
 
 def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):

@@ -44,4 +44,22 @@ class ProtocolScene(Scene):
         proof_operators = _get_proof_operators_mathtex(qbf)
         proof_operators.to_edge(UP)
 
+        prover_tex = Tex("P")
+        prover_tex.scale(3)
+
+        prover_box = SurroundingRectangle(prover_tex, BLUE_C)
+
+        prover_group = VGroup(prover_tex, prover_box)
+        prover_group.to_edge(LEFT)
+
+        verifier_tex = Tex("V")
+        verifier_tex.scale(3)
+
+        verifier_box = SurroundingRectangle(verifier_tex, RED_C)
+
+        verifier_group = VGroup(verifier_tex, verifier_box)
+        verifier_group.to_edge(RIGHT)
+
         self.add(proof_operators)
+        self.play(Create(prover_group), Create(verifier_group))
+        self.wait(3)
