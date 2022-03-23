@@ -14,7 +14,7 @@ def _resolve_root():
 def _configure_loggers():
     for log_module in ["protocol", "prover"]:
 
-        fh = logging.FileHandler(os.path.join(_resolve_root(), "%s.log" % log_module))
+        fh = logging.FileHandler(os.path.join(_resolve_root(), "%s.log" % log_module), mode="w")
         fh.setLevel(logging.DEBUG)
 
         formatter = logging.Formatter("[%(levelname)7s]: %(message)s")
