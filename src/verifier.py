@@ -7,12 +7,19 @@ from prover import Prover, ProofOperator
 logger = logging.getLogger("protocol")
 
 
+class ProtocolObserver:
+
+    def on_round_start(self, current_operator: ProofOperator):
+        pass
+
+
 def _log_random_choices(qbf: QBF, random_choices):
     log_str = ", ".join(("%s := %d" % (qbf.get_alias(var), val) for var, val in random_choices.items()))
     logger.info("[V]: Random choices: %s", log_str if log_str else "none")
 
 
-def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):
+def run_verifier(qbf: QBF, prover: Prover, p: int,
+                 seed: int = None, observer: ProtocolObserver = ProtocolObserver()):
 
     logger.info("[V]: Asking prover to send value of the entire polynomial")
 
@@ -34,12 +41,17 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):
 
         v_symbol = qbf.get_symbol(v)
 
+        current_operator = ProofOperator(v)
+
         logger.info("-" * 30)
-        logger.info("Starting new round. Current operator: %s", ProofOperator(v).to_string(qbf))
+        logger.info("Starting new round. Current operator: %s", current_operator.to_string(qbf))
         _log_random_choices(qbf, random_choices)
+
+        observer.on_round_start(current_operator)
+
         logger.info("[V]: Asking prover to send s(%s) = h(%s)", qbf.get_alias(v), qbf.get_alias(v))
 
-        s = prover.get_operator_polynomial(ProofOperator(v), random_choices)
+        s = prover.get_operator_polynomial(current_operator, random_choices)
 
         logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(v), s)
 
@@ -86,18 +98,23 @@ def run_verifier(qbf: QBF, prover: Prover, p: int, seed: int = None):
 
             lin_v_symbol = qbf.get_symbol(variable_to_linearize)
 
+            current_operator = ProofOperator(v, variable_to_linearize)
+
             logger.info("-" * 30)
             logger.info(
                 "Starting new round. Current operator: %s",
-                ProofOperator(v, variable_to_linearize).to_string(qbf)
+                current_operator.to_string(qbf)
             )
+
+            observer.on_round_start(current_operator)
+
             logger.info(
                 "[V]: Asking prover to send s(%s) = h(%s)",
                 qbf.get_alias(variable_to_linearize),
                 qbf.get_alias(variable_to_linearize)
             )
 
-            s = prover.get_operator_polynomial(ProofOperator(v, variable_to_linearize), random_choices)
+            s = prover.get_operator_polynomial(current_operator, random_choices)
 
             logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(variable_to_linearize), s)
 

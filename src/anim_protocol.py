@@ -1,5 +1,7 @@
 from manim import *
 from formulas import *
+from prover import ProofOperator, HonestProver
+from verifier import ProtocolObserver, run_verifier
 
 
 def _get_proof_operators_mathtex(qbf: QBF):
@@ -35,13 +37,35 @@ def _get_proof_operators_mathtex(qbf: QBF):
     return mt
 
 
+class AnimatingObserver(ProtocolObserver):
+
+    def __init__(self, scene):
+        self.scene = scene
+
+    def on_round_start(self, current_operator: ProofOperator):
+        print("Round start", current_operator.to_string(self.scene.qbf))
+
+    def finish(self, accepted: bool):
+        pass
+
+
 class ProtocolScene(Scene):
+
+    def __init__(
+            self,
+            renderer=None,
+            camera_class=Camera,
+            always_update_mobjects=False,
+            random_seed=None,
+            skip_animations=False,
+            qbf: QBF = example_2_formula()
+    ):
+        super().__init__(renderer, camera_class, always_update_mobjects, random_seed, skip_animations)
+        self.qbf = qbf
 
     def construct(self):
 
-        qbf = example_2_formula()
-
-        proof_operators = _get_proof_operators_mathtex(qbf)
+        proof_operators = _get_proof_operators_mathtex(self.qbf)
         proof_operators.to_edge(UP)
 
         prover_tex = Tex("P")
@@ -63,3 +87,13 @@ class ProtocolScene(Scene):
         self.add(proof_operators)
         self.play(Create(prover_group), Create(verifier_group))
         self.wait(3)
+
+        p = self.qbf.compute_prime_for_protocol()
+
+        prover = HonestProver(self.qbf, p)
+
+        observer = AnimatingObserver(self)
+
+        accepted = run_verifier(self.qbf, prover, p, 0xcafe, observer)
+
+        observer.finish(accepted)
