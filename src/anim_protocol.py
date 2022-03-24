@@ -37,16 +37,34 @@ def _get_proof_operators_mathtex(qbf: QBF):
     return mt
 
 
+def _proof_operator_to_mathtex_index(op: ProofOperator):
+    return (op.v * (op.v - 1) // 2) + op.v + op.lv - 1
+
+
 class AnimatingObserver(ProtocolObserver):
 
     def __init__(self, scene):
         self.scene = scene
 
+        self.cur_operator_rect = SurroundingRectangle(
+            self.scene.proof_operators[0]
+        )
+
     def on_round_start(self, current_operator: ProofOperator):
         print("Round start", current_operator.to_string(self.scene.qbf))
 
+        new_operator_rect = SurroundingRectangle(
+            self.scene.proof_operators[_proof_operator_to_mathtex_index(current_operator)],
+            buff=.4 * SMALL_BUFF
+        )
+
+        self.scene.play(ReplacementTransform(self.cur_operator_rect, new_operator_rect))
+        self.scene.wait(1)
+
+        self.cur_operator_rect = new_operator_rect
+
     def finish(self, accepted: bool):
-        pass
+        self.scene.play(FadeOut(self.cur_operator_rect))
 
 
 class ProtocolScene(Scene):
@@ -62,11 +80,12 @@ class ProtocolScene(Scene):
     ):
         super().__init__(renderer, camera_class, always_update_mobjects, random_seed, skip_animations)
         self.qbf = qbf
+        self.proof_operators = None
 
     def construct(self):
 
-        proof_operators = _get_proof_operators_mathtex(self.qbf)
-        proof_operators.to_edge(UP)
+        self.proof_operators = _get_proof_operators_mathtex(self.qbf)
+        self.proof_operators.to_edge(UP)
 
         prover_tex = Tex("P")
         prover_tex.scale(3)
@@ -84,7 +103,7 @@ class ProtocolScene(Scene):
         verifier_group = VGroup(verifier_tex, verifier_box)
         verifier_group.to_edge(RIGHT)
 
-        self.add(proof_operators)
+        self.add(self.proof_operators)
         self.play(Create(prover_group), Create(verifier_group))
         self.wait(3)
 

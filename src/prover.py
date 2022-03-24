@@ -38,6 +38,9 @@ class ProofOperator:
         assert variable != 0
         return self.lv == variable
 
+    def is_linearity_operator(self) -> bool:
+        return self.lv != 0
+
     def to_string(self, context: QBF, latex: bool = False) -> str:
 
         if self.lv != 0:
