@@ -1,5 +1,4 @@
 from manim import *
-import sympy
 from formulas import *
 from prover import ProofOperator, HonestProver
 from verifier import ProtocolObserver, run_verifier
@@ -45,6 +44,7 @@ def _proof_operator_to_mathtex_index(op: ProofOperator):
 class AnimatingObserver(ProtocolObserver):
 
     def __init__(self, scene):
+        super().__init__()
 
         self._debug_counter = 0
 
@@ -69,7 +69,7 @@ class AnimatingObserver(ProtocolObserver):
     def on_new_round(self, current_operator: ProofOperator, s):
         print("Round start", current_operator.to_string(self.scene.qbf))
 
-        self._debug_counter += 1
+        self._debug_counter -= 1
 
         if self._debug_counter >= 3:
             return
@@ -87,28 +87,17 @@ class AnimatingObserver(ProtocolObserver):
                                       % self.scene.qbf.get_alias(operator_variable))
         verifier_prover_message.next_to(self.verifier_prover_arrow, DOWN)
 
-        s_lambda = sympy.lambdify(self.scene.qbf.get_symbol(operator_variable), s, "math")
+        s_cleansed = sympy.trunc(sympy.expand(s), self.p)
 
-        p = 17
-
-        def _s_plotter(x: float) -> float:
-            v = s_lambda(x)
-            if v >= p:
-                v -= (v // p) * p
-            elif v < 0:
-                v += ((-v // p) + 1) * p
-            return v
-
-        s_axes = Axes(x_range=[0, 16], y_range=[0, 16], x_length=5, y_length=5)
-        s_graph = s_axes.plot(_s_plotter)
-        VGroup(s_axes, s_graph).to_edge(DOWN)
+        prover_verifier_message = MathTex(sympy.latex(s_cleansed))
+        prover_verifier_message.next_to(self.prover_verifier_arrow, DOWN)
 
         self.scene.play(Write(verifier_prover_message), Write(self.verifier_prover_arrow))
         self.scene.wait(1)
         self.scene.play(FadeOut(verifier_prover_message), FadeOut(self.verifier_prover_arrow))
-        self.scene.play(Create(s_axes), Create(s_graph), Write(self.prover_verifier_arrow))
+        self.scene.play(Write(prover_verifier_message), Write(self.prover_verifier_arrow))
         self.scene.wait(1)
-        self.scene.play(FadeOut(s_axes), FadeOut(s_graph), FadeOut(self.prover_verifier_arrow))
+        self.scene.play(FadeOut(prover_verifier_message), FadeOut(self.prover_verifier_arrow))
 
         self.cur_operator_rect = new_operator_rect
 

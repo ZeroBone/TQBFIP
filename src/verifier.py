@@ -9,6 +9,9 @@ logger = logging.getLogger("protocol")
 
 class ProtocolObserver:
 
+    def __init__(self):
+        self.p = None
+
     def on_new_round(self, current_operator: ProofOperator, s):
         pass
 
@@ -23,6 +26,8 @@ def _log_random_choices(qbf: QBF, random_choices):
 
 def run_verifier(qbf: QBF, prover: Prover, p: int,
                  seed: int = None, observer: ProtocolObserver = ProtocolObserver()):
+
+    observer.p = p
 
     logger.info("[V]: Asking prover to send value of the entire polynomial")
 
