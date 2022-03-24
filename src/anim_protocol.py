@@ -1,4 +1,5 @@
 from manim import *
+import sympy
 from formulas import *
 from prover import ProofOperator, HonestProver
 from verifier import ProtocolObserver, run_verifier
@@ -44,26 +45,36 @@ def _proof_operator_to_mathtex_index(op: ProofOperator):
 class AnimatingObserver(ProtocolObserver):
 
     def __init__(self, scene):
+
+        self._debug_counter = 0
+
         self.scene = scene
 
         self.cur_operator_rect = SurroundingRectangle(
             self.scene.proof_operators[0]
         )
 
+        _title_direction = .5 * UP
+
         self.verifier_prover_arrow = Arrow(
-            self.scene.verifier_group.get_right() + .5 * UP,
-            self.scene.prover_group.get_left() + .5 * UP
+            self.scene.verifier_group.get_right() + _title_direction,
+            self.scene.prover_group.get_left() + _title_direction
         )
 
         self.prover_verifier_arrow = Arrow(
-            self.scene.prover_group.get_left() + .5 * DOWN,
-            self.scene.verifier_group.get_right() + .5 * DOWN
+            self.scene.prover_group.get_left() + _title_direction,
+            self.scene.verifier_group.get_right() + _title_direction
         )
 
-    def on_round_start(self, current_operator: ProofOperator):
+    def on_new_round(self, current_operator: ProofOperator, s):
         print("Round start", current_operator.to_string(self.scene.qbf))
 
-        operator_variable = self.scene.qbf.get_alias(current_operator.get_primary_variable())
+        self._debug_counter += 1
+
+        if self._debug_counter >= 3:
+            return
+
+        operator_variable = current_operator.get_primary_variable()
 
         new_operator_rect = SurroundingRectangle(
             self.scene.proof_operators[_proof_operator_to_mathtex_index(current_operator)],
@@ -72,18 +83,32 @@ class AnimatingObserver(ProtocolObserver):
 
         self.scene.play(ReplacementTransform(self.cur_operator_rect, new_operator_rect))
 
-        verifier_prover_message = Tex("Please send me $ s(%s) $" % operator_variable)
-        verifier_prover_message.next_to(self.verifier_prover_arrow, UP)
+        verifier_prover_message = Tex("Please send me $ s(%s) $"
+                                      % self.scene.qbf.get_alias(operator_variable))
+        verifier_prover_message.next_to(self.verifier_prover_arrow, DOWN)
 
-        s_axes = Axes(x_range=[0, 16], y_range=[0, 16], x_length=4, y_length=2.5)
-        s_graph = s_axes.plot(lambda x: x + 1)
+        s_lambda = sympy.lambdify(self.scene.qbf.get_symbol(operator_variable), s, "math")
+
+        p = 17
+
+        def _s_plotter(x: float) -> float:
+            v = s_lambda(x)
+            if v >= p:
+                v -= (v // p) * p
+            elif v < 0:
+                v += ((-v // p) + 1) * p
+            return v
+
+        s_axes = Axes(x_range=[0, 16], y_range=[0, 16], x_length=5, y_length=5)
+        s_graph = s_axes.plot(_s_plotter)
         VGroup(s_axes, s_graph).to_edge(DOWN)
 
         self.scene.play(Write(verifier_prover_message), Write(self.verifier_prover_arrow))
         self.scene.wait(1)
+        self.scene.play(FadeOut(verifier_prover_message), FadeOut(self.verifier_prover_arrow))
         self.scene.play(Create(s_axes), Create(s_graph), Write(self.prover_verifier_arrow))
         self.scene.wait(1)
-        self.scene.play(FadeOut(s_axes), FadeOut(s_graph), FadeOut(verifier_prover_message))
+        self.scene.play(FadeOut(s_axes), FadeOut(s_graph), FadeOut(self.prover_verifier_arrow))
 
         self.cur_operator_rect = new_operator_rect
 
@@ -128,6 +153,8 @@ class ProtocolScene(Scene):
 
         self.verifier_group = VGroup(verifier_tex, verifier_box)
         self.verifier_group.to_edge(LEFT)
+
+        VGroup(self.prover_group, self.verifier_group).next_to(self.proof_operators, DOWN)
 
         self.add(self.proof_operators)
         self.play(Create(self.prover_group), Create(self.verifier_group))

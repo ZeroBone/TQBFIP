@@ -9,7 +9,7 @@ logger = logging.getLogger("protocol")
 
 class ProtocolObserver:
 
-    def on_round_start(self, current_operator: ProofOperator):
+    def on_new_round(self, current_operator: ProofOperator, s):
         pass
 
     def on_terminated(self, accepted: bool):
@@ -51,13 +51,13 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
         logger.info("Starting new round. Current operator: %s", current_operator.to_string(qbf))
         _log_random_choices(qbf, random_choices)
 
-        observer.on_round_start(current_operator)
-
         logger.info("[V]: Asking prover to send s(%s) = h(%s)", qbf.get_alias(v), qbf.get_alias(v))
 
         s = prover.get_operator_polynomial(current_operator, random_choices)
 
         logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(v), s)
+
+        observer.on_new_round(current_operator, s)
 
         quantification = qbf.get_quantification(v)
 
@@ -112,8 +112,6 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
                 current_operator.to_string(qbf)
             )
 
-            observer.on_round_start(current_operator)
-
             logger.info(
                 "[V]: Asking prover to send s(%s) = h(%s)",
                 qbf.get_alias(variable_to_linearize),
@@ -123,6 +121,8 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             s = prover.get_operator_polynomial(current_operator, random_choices)
 
             logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(variable_to_linearize), s)
+
+            observer.on_new_round(current_operator, s)
 
             s_0 = int(s.subs(lin_v_symbol, 0))
             s_1 = int(s.subs(lin_v_symbol, 1))
