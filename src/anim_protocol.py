@@ -50,8 +50,20 @@ class AnimatingObserver(ProtocolObserver):
             self.scene.proof_operators[0]
         )
 
+        self.verifier_prover_arrow = Arrow(
+            self.scene.verifier_group.get_right() + .5 * UP,
+            self.scene.prover_group.get_left() + .5 * UP
+        )
+
+        self.prover_verifier_arrow = Arrow(
+            self.scene.prover_group.get_left() + .5 * DOWN,
+            self.scene.verifier_group.get_right() + .5 * DOWN
+        )
+
     def on_round_start(self, current_operator: ProofOperator):
         print("Round start", current_operator.to_string(self.scene.qbf))
+
+        operator_variable = self.scene.qbf.get_alias(current_operator.get_primary_variable())
 
         new_operator_rect = SurroundingRectangle(
             self.scene.proof_operators[_proof_operator_to_mathtex_index(current_operator)],
@@ -59,11 +71,23 @@ class AnimatingObserver(ProtocolObserver):
         )
 
         self.scene.play(ReplacementTransform(self.cur_operator_rect, new_operator_rect))
+
+        verifier_prover_message = Tex("Please send me $ s(%s) $" % operator_variable)
+        verifier_prover_message.next_to(self.verifier_prover_arrow, UP)
+
+        s_axes = Axes(x_range=[0, 16], y_range=[0, 16], x_length=4, y_length=2.5)
+        s_graph = s_axes.plot(lambda x: x + 1)
+        VGroup(s_axes, s_graph).to_edge(DOWN)
+
+        self.scene.play(Write(verifier_prover_message), Write(self.verifier_prover_arrow))
         self.scene.wait(1)
+        self.scene.play(Create(s_axes), Create(s_graph), Write(self.prover_verifier_arrow))
+        self.scene.wait(1)
+        self.scene.play(FadeOut(s_axes), FadeOut(s_graph), FadeOut(verifier_prover_message))
 
         self.cur_operator_rect = new_operator_rect
 
-    def finish(self, accepted: bool):
+    def on_terminated(self, accepted: bool):
         self.scene.play(FadeOut(self.cur_operator_rect))
 
 
@@ -81,6 +105,8 @@ class ProtocolScene(Scene):
         super().__init__(renderer, camera_class, always_update_mobjects, random_seed, skip_animations)
         self.qbf = qbf
         self.proof_operators = None
+        self.prover_group = None
+        self.verifier_group = None
 
     def construct(self):
 
@@ -92,27 +118,23 @@ class ProtocolScene(Scene):
 
         prover_box = SurroundingRectangle(prover_tex, BLUE_C)
 
-        prover_group = VGroup(prover_tex, prover_box)
-        prover_group.to_edge(LEFT)
+        self.prover_group = VGroup(prover_tex, prover_box)
+        self.prover_group.to_edge(RIGHT)
 
         verifier_tex = Tex("V")
         verifier_tex.scale(3)
 
         verifier_box = SurroundingRectangle(verifier_tex, RED_C)
 
-        verifier_group = VGroup(verifier_tex, verifier_box)
-        verifier_group.to_edge(RIGHT)
+        self.verifier_group = VGroup(verifier_tex, verifier_box)
+        self.verifier_group.to_edge(LEFT)
 
         self.add(self.proof_operators)
-        self.play(Create(prover_group), Create(verifier_group))
+        self.play(Create(self.prover_group), Create(self.verifier_group))
         self.wait(3)
 
         p = self.qbf.compute_prime_for_protocol()
 
         prover = HonestProver(self.qbf, p)
 
-        observer = AnimatingObserver(self)
-
-        accepted = run_verifier(self.qbf, prover, p, 0xcafe, observer)
-
-        observer.finish(accepted)
+        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self))

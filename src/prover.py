@@ -41,7 +41,14 @@ class ProofOperator:
     def is_linearity_operator(self) -> bool:
         return self.lv != 0
 
-    def to_string(self, context: QBF, latex: bool = False) -> str:
+    def get_primary_variable(self) -> int:
+
+        if self.is_linearity_operator():
+            return self.lv
+
+        return self.v
+
+    def to_string(self, context: QBF) -> str:
 
         if self.lv != 0:
             return "L_{%s}" % context.get_alias(self.lv)
@@ -49,13 +56,9 @@ class ProofOperator:
         quantification = context.get_quantification(self.v)
 
         if quantification == QBF.Q_FORALL:
-            if latex:
-                return "\\forall_{%s}" % context.get_alias(self.v)
             return "A_{%s}" % context.get_alias(self.v)
         else:
             assert quantification == QBF.Q_EXISTS
-            if latex:
-                return "\\exists_{%s}" % context.get_alias(self.v)
             return "E_{%s}" % context.get_alias(self.v)
 
 

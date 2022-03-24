@@ -12,6 +12,9 @@ class ProtocolObserver:
     def on_round_start(self, current_operator: ProofOperator):
         pass
 
+    def on_terminated(self, accepted: bool):
+        pass
+
 
 def _log_random_choices(qbf: QBF, random_choices):
     log_str = ", ".join(("%s := %d" % (qbf.get_alias(var), val) for var, val in random_choices.items()))
@@ -31,6 +34,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
     if c == 0:
         # this is absurd, the prover has directly confessed that he
         # would like to prove that the QBF sentence is false
+        observer.on_terminated(False)
         return False
 
     rng = Random(seed)
@@ -67,6 +71,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             if check_product != c:
                 logger.info("[V]: The above check has failed, "
                             "meaning that the prover has sent a malformed s polynomial.")
+                observer.on_terminated(False)
                 return False
 
         else:
@@ -80,6 +85,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             if check_sum != c:
                 logger.info("[V]: The above check has failed, "
                             "meaning that the prover has sent a malformed s polynomial.")
+                observer.on_terminated(False)
                 return False
 
         # choose a from F_p
@@ -130,6 +136,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             if check_sum != c:
                 logger.info("[V]: The above check has failed, "
                             "meaning that the prover has sent a malformed s polynomial.")
+                observer.on_terminated(False)
                 return False
 
             # choose a from F_p
@@ -148,4 +155,5 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
             logger.info("[V]: s(a) = %d =: c" % c)
 
+    observer.on_terminated(True)
     return True
