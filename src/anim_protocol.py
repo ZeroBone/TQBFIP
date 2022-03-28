@@ -54,17 +54,7 @@ class AnimatingObserver(ProtocolObserver):
             self.scene.proof_operators[0]
         )
 
-        _title_direction = .5 * UP
-
-        self.verifier_prover_arrow = Arrow(
-            self.scene.verifier_group.get_right() + _title_direction,
-            self.scene.prover_group.get_left() + _title_direction
-        )
-
-        self.prover_verifier_arrow = Arrow(
-            self.scene.prover_group.get_left() + _title_direction,
-            self.scene.verifier_group.get_right() + _title_direction
-        )
+        self.scene.play(Create(self.cur_operator_rect))
 
     def _s_polynomial_to_mathtex(self, s):
 
@@ -89,20 +79,6 @@ class AnimatingObserver(ProtocolObserver):
         )
 
         self.scene.play(ReplacementTransform(self.cur_operator_rect, new_operator_rect))
-
-        verifier_prover_message = Tex("Please send me $ s(%s) $"
-                                      % self.scene.qbf.get_alias(operator_variable))
-        verifier_prover_message.next_to(self.verifier_prover_arrow, DOWN)
-
-        prover_verifier_message = self._s_polynomial_to_mathtex(s)
-        prover_verifier_message.next_to(self.prover_verifier_arrow, DOWN)
-
-        self.scene.play(Write(verifier_prover_message), GrowArrow(self.verifier_prover_arrow))
-        self.scene.wait(1)
-        self.scene.play(FadeOut(verifier_prover_message), FadeOut(self.verifier_prover_arrow))
-        self.scene.play(Write(prover_verifier_message), GrowArrow(self.prover_verifier_arrow))
-        self.scene.wait(1)
-        self.scene.play(FadeOut(prover_verifier_message), FadeOut(self.prover_verifier_arrow))
 
         self.cur_operator_rect = new_operator_rect
 
@@ -132,27 +108,7 @@ class ProtocolScene(Scene):
         self.proof_operators = _get_proof_operators_mathtex(self.qbf)
         self.proof_operators.to_edge(UP)
 
-        prover_tex = Tex("P")
-        prover_tex.scale(3)
-
-        prover_box = SurroundingRectangle(prover_tex, BLUE_C)
-
-        self.prover_group = VGroup(prover_tex, prover_box)
-        self.prover_group.to_edge(RIGHT)
-
-        verifier_tex = Tex("V")
-        verifier_tex.scale(3)
-
-        verifier_box = SurroundingRectangle(verifier_tex, RED_C)
-
-        self.verifier_group = VGroup(verifier_tex, verifier_box)
-        self.verifier_group.to_edge(LEFT)
-
-        VGroup(self.prover_group, self.verifier_group).next_to(self.proof_operators, DOWN)
-
         self.add(self.proof_operators)
-        self.play(Create(self.prover_group), Create(self.verifier_group))
-        self.wait(3)
 
         p = self.qbf.compute_prime_for_protocol()
 

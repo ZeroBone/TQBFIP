@@ -137,7 +137,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             s = prover.get_operator_polynomial(current_operator, random_choices)
 
             logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(variable_to_linearize), _poly_to_str(s))
-            logger.info("[P]: deg(s(%s)) = %s", qbf.get_alias(v), s.degree())
+            logger.info("[P]: deg(s(%s)) = %s", qbf.get_alias(variable_to_linearize), s.degree())
 
             observer.on_new_round(current_operator, s)
 
