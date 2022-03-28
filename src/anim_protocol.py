@@ -79,6 +79,15 @@ class AnimatingObserver(ProtocolObserver):
         if self._debug_counter >= 6:
             return
 
+        new_operator_rect = SurroundingRectangle(
+            self.proof_operators[_proof_operator_to_mathtex_index(current_operator)],
+            buff=.4 * SMALL_BUFF
+        )
+
+        self.scene.play(ReplacementTransform(self.operator_rect, new_operator_rect))
+
+        self.operator_rect = new_operator_rect
+
         operator_variable = current_operator.get_primary_variable()
 
         new_qbf_tree = QBFTree(
@@ -99,15 +108,6 @@ class AnimatingObserver(ProtocolObserver):
 
         self.scene.wait()
         self.scene.wait(1)
-
-        new_operator_rect = SurroundingRectangle(
-            self.proof_operators[_proof_operator_to_mathtex_index(current_operator)],
-            buff=.4 * SMALL_BUFF
-        )
-
-        self.scene.play(ReplacementTransform(self.operator_rect, new_operator_rect))
-
-        self.operator_rect = new_operator_rect
 
     def on_terminated(self, accepted: bool):
         self.scene.play(FadeOut(self.operator_rect))

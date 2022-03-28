@@ -39,21 +39,30 @@ class QBFTreeNonLeafNode(QBFTreeNode):
 
         self._value %= p
 
-        self.text = MathTex(qbf.get_variable_latex_operator(self._v), r"\rightsquigarrow", str(self._value))
+        self.text = MathTex(qbf.get_variable_latex_operator(self._v), "[%d]" % self._value)
 
         self.text[0].set_color(RED_C if qbf.get_quantification(self._v) == QBF.Q_FORALL else GOLD_C)
 
-        self.text.scale(.5)
+        self.text.scale(.75)
 
         self.box = SurroundingRectangle(self.text, corner_radius=.1, color=BLUE)\
             .set_z_index(5)
 
+        group = VGroup(self.text, self.box)
+
         v_0_group = self.v_0_child.get_object_group()
         v_1_group = self.v_1_child.get_object_group()
 
-        children_group = VGroup(v_0_group, v_1_group).arrange(RIGHT)
+        children_group = VGroup(v_0_group, v_1_group)
 
-        group = VGroup(self.text, self.box).next_to(children_group, UP)
+        if self._v == qbf.get_variable_count():
+            # children are leafes, it would be a good idea to increase the buffer slightly
+            buff = group.width - min(v_0_group.width, v_1_group.width)
+            children_group.arrange(RIGHT, buff=buff)
+        else:
+            children_group.arrange(RIGHT)
+
+        group.next_to(children_group, UP)
 
         self.v_0_line = Line(group.get_left(), v_0_group.get_top(), color=RED_C)
         self.v_1_line = Line(group.get_right(), v_1_group.get_top(), color=GREEN_C)
@@ -87,7 +96,7 @@ class QBFTreeLeafNode(QBFTreeNode):
         self._value = int(arithmetization.eval(eval_subs).as_poly(arithmetization.gens).LC())
         self._value %= p
 
-        self.text = Integer(self._value, 0).scale(.5)
+        self.text = Integer(self._value, 0).scale(.75)
 
         self.box = SurroundingRectangle(self.text, color=GOLD, corner_radius=.1)
 
