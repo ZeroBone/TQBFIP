@@ -30,7 +30,7 @@ def main():
 
     _configure_loggers()
 
-    qbf = example_2_formula()
+    qbf = simple_equality_formula()
 
     p = qbf.compute_prime_for_protocol()
 

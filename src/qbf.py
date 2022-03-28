@@ -18,7 +18,7 @@ class QBFVariable:
     def __init__(self, quantification: bool, alias: str):
         self.quantification = quantification
         self.alias = alias
-        self.symbol = sympy.symbols(self.alias, integer=True)
+        self.symbol = sympy.Symbol(self.alias, integer=True)
 
     def get_latex_symbol(self, b_index: int) -> str:
 
@@ -123,7 +123,7 @@ class QBF:
 
             p_phi *= 1 - prod
 
-        return p_phi
+        return sympy.Poly(p_phi, *[v.symbol for v in self._var], domain=sympy.ZZ)
 
     def _latex_clause_arithmetization(self, clause) -> str:
 

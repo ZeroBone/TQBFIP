@@ -69,7 +69,8 @@ class AnimatingObserver(ProtocolObserver):
     def on_new_round(self, current_operator: ProofOperator, s):
         print("Round start", current_operator.to_string(self.scene.qbf))
 
-        self._debug_counter -= 1
+        # TODO: remove debug counter
+        self._debug_counter += 1
 
         if self._debug_counter >= 3:
             return
@@ -92,10 +93,10 @@ class AnimatingObserver(ProtocolObserver):
         prover_verifier_message = MathTex(sympy.latex(s_cleansed))
         prover_verifier_message.next_to(self.prover_verifier_arrow, DOWN)
 
-        self.scene.play(Write(verifier_prover_message), Write(self.verifier_prover_arrow))
+        self.scene.play(Write(verifier_prover_message), GrowArrow(self.verifier_prover_arrow))
         self.scene.wait(1)
         self.scene.play(FadeOut(verifier_prover_message), FadeOut(self.verifier_prover_arrow))
-        self.scene.play(Write(prover_verifier_message), Write(self.prover_verifier_arrow))
+        self.scene.play(Write(prover_verifier_message), GrowArrow(self.prover_verifier_arrow))
         self.scene.wait(1)
         self.scene.play(FadeOut(prover_verifier_message), FadeOut(self.prover_verifier_arrow))
 

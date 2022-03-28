@@ -24,6 +24,12 @@ def _log_random_choices(qbf: QBF, random_choices):
     logger.info("[V]: Random choices: %s", log_str if log_str else "none")
 
 
+# evaluate univariate polynomial s at point x
+def evaluate_s(s, x: int, p: int) -> int:
+    assert s.is_univariate or s.is_ground
+    return int(s.eval(x).as_poly(s.gens).LC()) % p
+
+
 def run_verifier(qbf: QBF, prover: Prover, p: int,
                  seed: int = None, observer: ProtocolObserver = ProtocolObserver()):
 
@@ -48,8 +54,6 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
     for v in range(1, qbf.get_variable_count() + 1):
 
-        v_symbol = qbf.get_symbol(v)
-
         current_operator = ProofOperator(v)
 
         logger.info("-" * 30)
@@ -61,6 +65,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
         s = prover.get_operator_polynomial(current_operator, random_choices)
 
         logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(v), s)
+        # TODO: print degree of s
 
         observer.on_new_round(current_operator, s)
 
@@ -69,7 +74,8 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
         if quantification == QBF.Q_FORALL:
             # check that s(0) * s(1) = c
 
-            check_product = (int(s.subs(v_symbol, 0)) * int(s.subs(v_symbol, 1))) % p
+            check_product = evaluate_s(s, 0, p) * evaluate_s(s, 1, p)
+            check_product %= p
 
             logger.info("[V]: s(0) * s(1) = %d, expecting to be equal to c = %d", check_product, c)
 
@@ -83,7 +89,8 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             assert quantification == QBF.Q_EXISTS
 
             # check that s(0) + s(1) = c
-            check_sum = (int(s.subs(v_symbol, 0)) + int(s.subs(v_symbol, 1))) % p
+            check_sum = evaluate_s(s, 0, p) + evaluate_s(s, 1, p)
+            check_sum %= p
 
             logger.info("[V]: s(0) + s(1) = %d, expecting to be equal to c = %d", check_sum, c)
 
@@ -101,13 +108,11 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
         _log_random_choices(qbf, random_choices)
 
         # calculate c = s(a)
-        c = int(s.subs(v_symbol, a)) % p
+        c = evaluate_s(s, a, p)
 
         logger.info("[V]: s(a) = %d =: c", c)
 
         for variable_to_linearize in range(1, v + 1):
-
-            lin_v_symbol = qbf.get_symbol(variable_to_linearize)
 
             current_operator = ProofOperator(v, variable_to_linearize)
 
@@ -129,8 +134,8 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
             observer.on_new_round(current_operator, s)
 
-            s_0 = int(s.subs(lin_v_symbol, 0))
-            s_1 = int(s.subs(lin_v_symbol, 1))
+            s_0 = evaluate_s(s, 0, p)
+            s_1 = evaluate_s(s, 1, p)
 
             a_for_x = random_choices[variable_to_linearize]
 
@@ -156,7 +161,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             _log_random_choices(qbf, random_choices)
 
             # calculate c = s(a)
-            c = int(s.subs(lin_v_symbol, a)) % p
+            c = evaluate_s(s, a, p)
 
             logger.info("[V]: s(a) = %d =: c" % c)
 
