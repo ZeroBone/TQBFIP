@@ -2,6 +2,7 @@ from manim import *
 from formulas import *
 from prover import ProofOperator, HonestProver
 from verifier import ProtocolObserver, run_verifier
+from qbf_tree import QBFTree
 
 
 def _get_proof_operators_mathtex(qbf: QBF):
@@ -43,18 +44,31 @@ def _proof_operator_to_mathtex_index(op: ProofOperator):
 
 class AnimatingObserver(ProtocolObserver):
 
-    def __init__(self, scene):
+    def __init__(self, p: int, scene):
         super().__init__()
+
+        self.p = p
 
         self._debug_counter = 0
 
         self.scene = scene
 
+        self.proof_operators = _get_proof_operators_mathtex(self.scene.qbf)
+        self.proof_operators.to_edge(UP)
+
+        self.scene.add(self.proof_operators)
+
         self.cur_operator_rect = SurroundingRectangle(
-            self.scene.proof_operators[0]
+            self.proof_operators[0]
         )
 
         self.scene.play(Create(self.cur_operator_rect))
+
+        self.qbf_tree = QBFTree(self.scene.qbf, self.p, {}, 1)
+
+        self.scene.play(Create(self.qbf_tree.get_object_group()))
+
+        self.scene.wait(4)
 
     def _s_polynomial_to_mathtex(self, s):
 
@@ -74,7 +88,7 @@ class AnimatingObserver(ProtocolObserver):
         operator_variable = current_operator.get_primary_variable()
 
         new_operator_rect = SurroundingRectangle(
-            self.scene.proof_operators[_proof_operator_to_mathtex_index(current_operator)],
+            self.proof_operators[_proof_operator_to_mathtex_index(current_operator)],
             buff=.4 * SMALL_BUFF
         )
 
@@ -99,19 +113,13 @@ class ProtocolScene(Scene):
     ):
         super().__init__(renderer, camera_class, always_update_mobjects, random_seed, skip_animations)
         self.qbf = qbf
-        self.proof_operators = None
         self.prover_group = None
         self.verifier_group = None
 
     def construct(self):
 
-        self.proof_operators = _get_proof_operators_mathtex(self.qbf)
-        self.proof_operators.to_edge(UP)
-
-        self.add(self.proof_operators)
-
         p = self.qbf.compute_prime_for_protocol()
 
         prover = HonestProver(self.qbf, p)
 
-        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self))
+        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(p, self))

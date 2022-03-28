@@ -40,18 +40,20 @@ class QBFTreeNonLeafNode(QBFTreeNode):
 
         self._value %= p
 
-        self.text = DecimalNumber(
+        self.text = Integer(
             self._value,
-            0,
-            num_decimal_places=math.ceil(math.log10(p - 1)) + 1
+            math.ceil(math.log10(p - 1)) + 1
         )
 
         self.box = SurroundingRectangle(self.text, corner_radius=.2)
 
-        group = VGroup(self.text, self.box)
+        v_0_group = self.v_0_child.get_object_group()
+        v_1_group = self.v_1_child.get_object_group()
 
-        self.v_0_line = Line(group.get_bottom(), self.v_0_child.get_object_group().get_left())
-        self.v_1_line = Line(group.get_top(), self.v_1_child.get_object_group().get_left())
+        group = VGroup(self.text, self.box).next_to(VGroup(v_0_group, v_1_group), LEFT, 1.5)
+
+        self.v_0_line = Line(group.get_bottom(), v_0_group.get_left())
+        self.v_1_line = Line(group.get_top(), v_1_group.get_left())
 
     def get_value(self) -> int:
         return self._value
@@ -68,14 +70,15 @@ class QBFTreeLeafNode(QBFTreeNode):
         eval_subs = {}
 
         for var, val in random_choices.items():
-            eval_subs[var] = val
+            eval_subs[qbf.get_symbol(var)] = val
 
-        self._value = int(qbf.arithmetize_matrix().eval(eval_subs)) % p
+        arithmetization = qbf.arithmetize_matrix()
+        self._value = int(arithmetization.eval(eval_subs).as_poly(arithmetization.gens).LC())
+        self._value %= p
 
-        self.text = DecimalNumber(
+        self.text = Integer(
             self._value,
-            0,
-            num_decimal_places=math.ceil(math.log10(p - 1)) + 1
+            math.ceil(math.log10(p - 1)) + 1
         )
 
         self.box = SurroundingRectangle(self.text, corner_radius=.2)
@@ -105,3 +108,6 @@ class QBFTree:
         self.first_variable = first_variable
 
         self.root = _construct_node(qbf, p, random_choices, first_variable)
+
+    def get_object_group(self):
+        return self.root.get_object_group()
