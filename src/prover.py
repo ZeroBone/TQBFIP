@@ -10,9 +10,8 @@ def _poly_to_str(poly) -> str:
 
 
 def _to_poly(result, initial_poly, p: int):
-
-    return sympy.Poly(result, initial_poly.gens, domain=sympy.ZZ)\
-        .trunc(p)\
+    return sympy.Poly(result, initial_poly.gens, domain=sympy.ZZ) \
+        .trunc(p) \
         .exclude()
 
 
@@ -87,7 +86,6 @@ class Prover:
         raise NotImplementedError()
 
     def get_operator_polynomial(self, operator: ProofOperator, verifiers_random_choices: dict):
-
         s = self._get_operator_polynomial(operator, verifiers_random_choices)
 
         assert s.is_univariate or s.is_ground, "Prover provided a multivariate s polynomial"
@@ -114,7 +112,10 @@ class HonestProver(Prover):
                 current_operator = ProofOperator(v, variable_to_linearize)
                 polynomial_after_operator[current_operator] = cur_p
 
-                logger.info("%s: %s", current_operator.to_string(qbf), _poly_to_str(cur_p))
+                logger.info("%s: (degree %2s): %s",
+                            current_operator.to_string(qbf),
+                            cur_p.total_degree(),
+                            _poly_to_str(cur_p))
 
                 cur_p = linearity_operator(cur_p, self.qbf.get_symbol(variable_to_linearize), self.p)
                 # cur_p is now a polynomial where variable_to_linearize is linearized
@@ -122,7 +123,10 @@ class HonestProver(Prover):
             current_operator = ProofOperator(v)
             polynomial_after_operator[current_operator] = cur_p
 
-            logger.info("%s: %s", current_operator.to_string(qbf), _poly_to_str(cur_p))
+            logger.info("%s: (degree %2s): %s",
+                        current_operator.to_string(qbf),
+                        cur_p.total_degree(),
+                        _poly_to_str(cur_p))
 
             quantification = qbf.get_quantification(v)
 
