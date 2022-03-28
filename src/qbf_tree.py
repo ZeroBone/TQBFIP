@@ -1,4 +1,3 @@
-import math
 from manim import *
 from qbf import QBF
 
@@ -40,26 +39,39 @@ class QBFTreeNonLeafNode(QBFTreeNode):
 
         self._value %= p
 
-        self.text = Integer(
-            self._value,
-            math.ceil(math.log10(p - 1)) + 1
-        )
+        self.text = Integer(self._value, 0)
 
-        self.box = SurroundingRectangle(self.text, corner_radius=.2)
+        self.box = SurroundingRectangle(self.text, corner_radius=.1)
 
         v_0_group = self.v_0_child.get_object_group()
         v_1_group = self.v_1_child.get_object_group()
 
-        group = VGroup(self.text, self.box).next_to(VGroup(v_0_group, v_1_group), LEFT, 1.5)
+        children_group = VGroup(v_0_group, v_1_group).arrange(RIGHT)
 
-        self.v_0_line = Line(group.get_bottom(), v_0_group.get_left())
-        self.v_1_line = Line(group.get_top(), v_1_group.get_left())
+        group = VGroup(self.text, self.box).next_to(children_group, UP)
+
+        self.v_0_line = Line(group.get_left(), v_0_group.get_top())
+        self.v_1_line = Line(group.get_right(), v_1_group.get_top())
+
+        # VGroup(
+        #     VGroup(self.text, self.box),
+        #     VGroup(self.v_0_line, self.v_1_line),
+        #     VGroup(v_0_group, v_1_group)
+        # ).arrange(DOWN)
 
     def get_value(self) -> int:
         return self._value
 
     def get_object_group(self):
-        return VGroup(self.text, self.box, VGroup(self.v_0_line, self.v_1_line)).arrange(RIGHT)
+
+        v_0_group = self.v_0_child.get_object_group()
+        v_1_group = self.v_1_child.get_object_group()
+
+        return VGroup(
+            VGroup(self.text, self.box),
+            VGroup(self.v_0_line, self.v_1_line),
+            VGroup(v_0_group, v_1_group)
+        )
 
 
 class QBFTreeLeafNode(QBFTreeNode):
@@ -76,12 +88,11 @@ class QBFTreeLeafNode(QBFTreeNode):
         self._value = int(arithmetization.eval(eval_subs).as_poly(arithmetization.gens).LC())
         self._value %= p
 
-        self.text = Integer(
-            self._value,
-            math.ceil(math.log10(p - 1)) + 1
-        )
+        self.text = Integer(self._value, 0).scale(.5)
 
-        self.box = SurroundingRectangle(self.text, corner_radius=.2)
+        self.box = SurroundingRectangle(self.text, color=BLUE, corner_radius=.1)
+
+        VGroup(self.text, self.box).to_edge(DOWN)
 
     def get_value(self) -> int:
         return self._value
@@ -93,7 +104,7 @@ class QBFTreeLeafNode(QBFTreeNode):
 def _construct_node(qbf: QBF, p: int, random_choices: dict, first_variable: int) -> QBFTreeNode:
     assert first_variable >= 1
 
-    if first_variable >= qbf.get_variable_count():
+    if first_variable > qbf.get_variable_count():
         return QBFTreeLeafNode(qbf, p, random_choices)
 
     return QBFTreeNonLeafNode(qbf, p, random_choices, first_variable)
