@@ -51,6 +51,41 @@ class AnimatingObserver(ProtocolObserver):
 
         self.scene = scene
 
+        # prover and verifier communication
+
+        prover_tex = Tex("P")
+        prover_tex.scale(3)
+
+        prover_box = SurroundingRectangle(prover_tex, BLUE_C)
+
+        self.prover_group = VGroup(prover_tex, prover_box)
+        self.prover_group.to_edge(RIGHT)
+
+        verifier_tex = Tex("V")
+        verifier_tex.scale(3)
+
+        verifier_box = SurroundingRectangle(verifier_tex, RED_C)
+
+        self.verifier_group = VGroup(verifier_tex, verifier_box)
+        self.verifier_group.to_edge(LEFT)
+
+        self.prover_verifier_group = VGroup(self.prover_group, self.verifier_group)
+        self.prover_verifier_group.to_edge(DOWN)
+
+        _title_direction = .5 * DOWN
+
+        self.verifier_prover_arrow = Arrow(
+            self.verifier_group.get_right() + _title_direction,
+            self.prover_group.get_left() + _title_direction
+        )
+
+        self.prover_verifier_arrow = Arrow(
+            self.prover_group.get_left() + _title_direction,
+            self.verifier_group.get_right() + _title_direction
+        )
+
+        # proof operators
+
         self.proof_operators = _get_proof_operators_mathtex(self.scene.qbf)
         self.proof_operators.to_edge(UP)
 
@@ -60,7 +95,9 @@ class AnimatingObserver(ProtocolObserver):
             self.proof_operators[0]
         )
 
-        self.scene.play(Create(self.operator_rect))
+        # make the created objects visible
+
+        self.scene.play(Create(self.operator_rect), Create(self.prover_verifier_group))
 
         self.qbf_tree = None
 
@@ -89,6 +126,20 @@ class AnimatingObserver(ProtocolObserver):
         self.operator_rect = new_operator_rect
 
         operator_variable = current_operator.get_primary_variable()
+
+        verifier_prover_message = Tex("Please send me $ s(%s) $"
+                                      % self.scene.qbf.get_alias(operator_variable))
+        verifier_prover_message.next_to(self.verifier_prover_arrow, UP)
+
+        prover_verifier_message = self._s_polynomial_to_mathtex(s)
+        prover_verifier_message.next_to(self.prover_verifier_arrow, UP)
+
+        self.scene.play(Write(verifier_prover_message), GrowArrow(self.verifier_prover_arrow))
+        self.scene.wait(1)
+        self.scene.play(FadeOut(verifier_prover_message), FadeOut(self.verifier_prover_arrow))
+        self.scene.play(Write(prover_verifier_message), GrowArrow(self.prover_verifier_arrow))
+        self.scene.wait(1)
+        self.scene.play(FadeOut(prover_verifier_message), FadeOut(self.prover_verifier_arrow))
 
         new_qbf_tree = QBFTree(
             self.scene.qbf,
