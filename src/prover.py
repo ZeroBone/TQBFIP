@@ -59,6 +59,9 @@ class ProofOperator:
 
         return self.v
 
+    def get_leftmost_variable_that_is_not_yet_resolved(self) -> int:
+        return max(self.v, self.lv) + 1
+
     def to_string(self, context: QBF) -> str:
 
         if self.lv != 0:

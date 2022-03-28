@@ -145,7 +145,7 @@ class AnimatingObserver(ProtocolObserver):
             self.scene.qbf,
             self.p,
             random_choices,
-            operator_variable
+            current_operator.get_leftmost_variable_that_is_not_yet_resolved()
         )
 
         if self.qbf_tree is None:
