@@ -5,8 +5,15 @@ from qbf import QBF
 logger = logging.getLogger("prover")
 
 
+def _poly_to_str(poly) -> str:
+    return str(poly.as_expr())
+
+
 def _to_poly(result, initial_poly, p: int):
-    return sympy.Poly(result, initial_poly.gens).trunc(p).exclude()
+
+    return sympy.Poly(result, initial_poly.gens, domain=sympy.ZZ)\
+        .trunc(p)\
+        .exclude()
 
 
 def linearity_operator(poly, v, p: int):
@@ -85,7 +92,7 @@ class Prover:
 
         assert s.is_univariate or s.is_ground, "Prover provided a multivariate s polynomial"
 
-        return s.exclude()
+        return s.trunc(self.p).exclude()
 
 
 class HonestProver(Prover):
@@ -107,7 +114,7 @@ class HonestProver(Prover):
                 current_operator = ProofOperator(v, variable_to_linearize)
                 polynomial_after_operator[current_operator] = cur_p
 
-                logger.info("%s: %s", current_operator.to_string(qbf), cur_p)
+                logger.info("%s: %s", current_operator.to_string(qbf), _poly_to_str(cur_p))
 
                 cur_p = linearity_operator(cur_p, self.qbf.get_symbol(variable_to_linearize), self.p)
                 # cur_p is now a polynomial where variable_to_linearize is linearized
@@ -115,7 +122,7 @@ class HonestProver(Prover):
             current_operator = ProofOperator(v)
             polynomial_after_operator[current_operator] = cur_p
 
-            logger.info("%s: %s", current_operator.to_string(qbf), cur_p)
+            logger.info("%s: %s", current_operator.to_string(qbf), _poly_to_str(cur_p))
 
             quantification = qbf.get_quantification(v)
 
@@ -128,7 +135,7 @@ class HonestProver(Prover):
             # cur_p is now a polynomial with the quantification applied
 
         assert cur_p.is_ground, "Polynomial at the end of the protocol is not trivial"
-        self.entire_polynomial_value = int(cur_p.LC())
+        self.entire_polynomial_value = int(cur_p.LC()) % self.p
 
         logger.info("Value of entire polynomial = %d", self.entire_polynomial_value)
 

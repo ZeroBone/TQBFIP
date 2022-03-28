@@ -66,6 +66,12 @@ class AnimatingObserver(ProtocolObserver):
             self.scene.verifier_group.get_right() + _title_direction
         )
 
+    def _s_polynomial_to_mathtex(self, s):
+
+        s_cleansed = sympy.trunc(sympy.expand(s.as_expr()), self.p)
+
+        return MathTex(sympy.latex(s_cleansed))
+
     def on_new_round(self, current_operator: ProofOperator, s):
         print("Round start", current_operator.to_string(self.scene.qbf))
 
@@ -88,9 +94,7 @@ class AnimatingObserver(ProtocolObserver):
                                       % self.scene.qbf.get_alias(operator_variable))
         verifier_prover_message.next_to(self.verifier_prover_arrow, DOWN)
 
-        s_cleansed = sympy.trunc(sympy.expand(s), self.p)
-
-        prover_verifier_message = MathTex(sympy.latex(s_cleansed))
+        prover_verifier_message = self._s_polynomial_to_mathtex(s)
         prover_verifier_message.next_to(self.prover_verifier_arrow, DOWN)
 
         self.scene.play(Write(verifier_prover_message), GrowArrow(self.verifier_prover_arrow))

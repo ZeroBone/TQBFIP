@@ -24,6 +24,10 @@ def _log_random_choices(qbf: QBF, random_choices):
     logger.info("[V]: Random choices: %s", log_str if log_str else "none")
 
 
+def _poly_to_str(poly) -> str:
+    return str(poly.as_expr())
+
+
 # evaluate univariate polynomial s at point x
 def evaluate_s(s, x: int, p: int) -> int:
     assert s.is_univariate or s.is_ground
@@ -64,7 +68,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
         s = prover.get_operator_polynomial(current_operator, random_choices)
 
-        logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(v), s)
+        logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(v), _poly_to_str(s))
         # TODO: print degree of s
 
         observer.on_new_round(current_operator, s)
@@ -130,7 +134,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
             s = prover.get_operator_polynomial(current_operator, random_choices)
 
-            logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(variable_to_linearize), s)
+            logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(variable_to_linearize), _poly_to_str(s))
 
             observer.on_new_round(current_operator, s)
 
