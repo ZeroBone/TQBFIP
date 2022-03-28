@@ -39,9 +39,14 @@ class QBFTreeNonLeafNode(QBFTreeNode):
 
         self._value %= p
 
-        self.text = Integer(self._value, 0)
+        self.text = MathTex(qbf.get_variable_latex_operator(self._v), r"\rightsquigarrow", str(self._value))
 
-        self.box = SurroundingRectangle(self.text, corner_radius=.1)
+        self.text[0].set_color(RED_C if qbf.get_quantification(self._v) == QBF.Q_FORALL else GOLD_C)
+
+        self.text.scale(.5)
+
+        self.box = SurroundingRectangle(self.text, corner_radius=.1, color=BLUE)\
+            .set_z_index(5)
 
         v_0_group = self.v_0_child.get_object_group()
         v_1_group = self.v_1_child.get_object_group()
@@ -50,14 +55,8 @@ class QBFTreeNonLeafNode(QBFTreeNode):
 
         group = VGroup(self.text, self.box).next_to(children_group, UP)
 
-        self.v_0_line = Line(group.get_left(), v_0_group.get_top())
-        self.v_1_line = Line(group.get_right(), v_1_group.get_top())
-
-        # VGroup(
-        #     VGroup(self.text, self.box),
-        #     VGroup(self.v_0_line, self.v_1_line),
-        #     VGroup(v_0_group, v_1_group)
-        # ).arrange(DOWN)
+        self.v_0_line = Line(group.get_left(), v_0_group.get_top(), color=RED_C)
+        self.v_1_line = Line(group.get_right(), v_1_group.get_top(), color=GREEN_C)
 
     def get_value(self) -> int:
         return self._value
@@ -90,7 +89,7 @@ class QBFTreeLeafNode(QBFTreeNode):
 
         self.text = Integer(self._value, 0).scale(.5)
 
-        self.box = SurroundingRectangle(self.text, color=BLUE, corner_radius=.1)
+        self.box = SurroundingRectangle(self.text, color=GOLD, corner_radius=.1)
 
         VGroup(self.text, self.box).to_edge(DOWN)
 

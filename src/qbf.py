@@ -26,7 +26,7 @@ class QBFVariable:
 
         return "%s_{b_{%d}=0}^1" % (latex_op_sym, b_index)
 
-    def get_operator_symbol(self) -> str:
+    def get_operator_latex(self) -> str:
 
         if self.quantification == QBF.Q_FORALL:
             return r"\forall_{%s}" % self.alias
@@ -83,9 +83,9 @@ class QBF:
         assert variable >= 1
         return self._var[variable - 1].alias
 
-    def get_operator(self, variable: int) -> str:
+    def get_variable_latex_operator(self, variable: int) -> str:
         assert variable >= 1
-        return self._var[variable - 1].get_operator_symbol()
+        return self._var[variable - 1].get_operator_latex()
 
     def _variable_defined(self, variable: int) -> bool:
         assert variable >= 1

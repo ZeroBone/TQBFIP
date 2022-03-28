@@ -12,7 +12,7 @@ class ProtocolObserver:
     def __init__(self):
         self.p = None
 
-    def on_new_round(self, current_operator: ProofOperator, s):
+    def on_new_round(self, current_operator: ProofOperator, s, random_choices: dict):
         pass
 
     def on_terminated(self, accepted: bool):
@@ -72,7 +72,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
         logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(v), _poly_to_str(s))
         logger.info("[P]: deg(s(%s)) = %s", qbf.get_alias(v), s.degree())
 
-        observer.on_new_round(current_operator, s)
+        observer.on_new_round(current_operator, s, random_choices)
 
         quantification = qbf.get_quantification(v)
 
@@ -139,7 +139,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(variable_to_linearize), _poly_to_str(s))
             logger.info("[P]: deg(s(%s)) = %s", qbf.get_alias(variable_to_linearize), s.degree())
 
-            observer.on_new_round(current_operator, s)
+            observer.on_new_round(current_operator, s, random_choices)
 
             s_0 = evaluate_s(s, 0, p)
             s_1 = evaluate_s(s, 1, p)
