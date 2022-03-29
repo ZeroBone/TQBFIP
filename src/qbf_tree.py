@@ -137,4 +137,4 @@ class QBFTree:
         self.root = _construct_node(qbf, p, random_choices, first_variable)
 
     def get_object_group(self):
-        return self.root.get_object_group()
+        return self.root.get_object_group().center()
