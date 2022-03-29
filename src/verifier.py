@@ -72,8 +72,6 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
         logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(v), _poly_to_str(s))
         logger.info("[P]: deg(s(%s)) = %s", qbf.get_alias(v), s.degree())
 
-        observer.on_new_round(current_operator, s, random_choices)
-
         quantification = qbf.get_quantification(v)
 
         if quantification == QBF.Q_FORALL:
@@ -117,6 +115,8 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
         logger.info("[V]: s(a) = %d =: c", c)
 
+        observer.on_new_round(current_operator, s, random_choices)
+
         for variable_to_linearize in range(1, v + 1):
 
             current_operator = ProofOperator(v, variable_to_linearize)
@@ -138,8 +138,6 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
             logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(variable_to_linearize), _poly_to_str(s))
             logger.info("[P]: deg(s(%s)) = %s", qbf.get_alias(variable_to_linearize), s.degree())
-
-            observer.on_new_round(current_operator, s, random_choices)
 
             s_0 = evaluate_s(s, 0, p)
             s_1 = evaluate_s(s, 1, p)
@@ -171,6 +169,8 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             c = evaluate_s(s, a, p)
 
             logger.info("[V]: s(a) = %d =: c" % c)
+
+            observer.on_new_round(current_operator, s, random_choices)
 
     observer.on_terminated(True)
     return True

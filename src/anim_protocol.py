@@ -44,11 +44,14 @@ def _proof_operator_to_mathtex_index(op: ProofOperator):
 
 class AnimatingObserver(ProtocolObserver):
 
-    def __init__(self, scene):
+    # rounds_limit = 0 means no limit for the amount of rounds to be animated
+    def __init__(self, p: int, scene, rounds_limit: int = 0):
         super().__init__()
 
-        self._debug_counter = 0
+        self._rounds_limit = rounds_limit
+        self._rounds_counter = 0
 
+        self.p = p
         self.scene = scene
 
         # prover and verifier communication
@@ -95,26 +98,41 @@ class AnimatingObserver(ProtocolObserver):
             self.proof_operators[0]
         )
 
+        # qbf tree
+
+        self.qbf_tree = QBFTree(
+            self.scene.qbf,
+            self.p,
+            {},
+            1
+        )
+
         # make the created objects visible
 
-        self.scene.play(Create(self.operator_rect), Create(self.prover_verifier_group))
-
-        self.qbf_tree = None
+        self.scene.play(
+            Create(self.operator_rect),
+            Create(self.prover_verifier_group),
+            Create(self.qbf_tree.get_object_group())
+        )
 
     def _s_polynomial_to_mathtex(self, s):
 
-        s_cleansed = sympy.trunc(sympy.expand(s.as_expr()), self.p)
+        s_cleansed = sympy.trunc(sympy.expand(s.as_expr()), self.p, s.gens)
 
         return MathTex(sympy.latex(s_cleansed))
 
     def on_new_round(self, current_operator: ProofOperator, s, random_choices: dict):
-        print("Round start", current_operator.to_string(self.scene.qbf))
+        # TODO: remove this debug printing
+        print("Round start", current_operator.to_string(self.scene.qbf), random_choices)
 
-        # TODO: remove debug counter
-        self._debug_counter += 1
+        self._rounds_counter += 1
 
-        if self._debug_counter >= 6:
+        if self._rounds_limit != 0 and self._rounds_counter > self._rounds_limit:
             return
+
+        # TODO: add c as argument and add it to the animation
+        # TODO: add random choices to the animation
+        # TODO: add p to the animation
 
         new_operator_rect = SurroundingRectangle(
             self.proof_operators[_proof_operator_to_mathtex_index(current_operator)],
@@ -148,12 +166,9 @@ class AnimatingObserver(ProtocolObserver):
             current_operator.get_leftmost_variable_that_is_not_yet_resolved()
         )
 
-        if self.qbf_tree is None:
-            self.scene.play(Create(new_qbf_tree.get_object_group()))
-        else:
-            self.scene.play(
-                ReplacementTransform(self.qbf_tree.get_object_group(), new_qbf_tree.get_object_group())
-            )
+        self.scene.play(
+            ReplacementTransform(self.qbf_tree.get_object_group(), new_qbf_tree.get_object_group())
+        )
 
         self.qbf_tree = new_qbf_tree
 
@@ -186,4 +201,4 @@ class ProtocolScene(Scene):
 
         prover = HonestProver(self.qbf, p)
 
-        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self))
+        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(p, self))

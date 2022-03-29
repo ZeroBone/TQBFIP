@@ -122,7 +122,15 @@ class QBFTree:
 
     def __init__(self, qbf: QBF, p: int, random_choices: dict, first_variable: int):
         assert first_variable >= 1
-        assert first_variable <= qbf.get_variable_count()
+
+        # if first_variable is one greater than the maximum id of an existent variable
+        # then this means that the tree should be built for the matrix
+        # which of course means that the tree will be simply one leaf node
+        assert first_variable <= qbf.get_variable_count() + 1
+
+        for v_with_random_value in range(1, first_variable):
+            assert v_with_random_value in random_choices,\
+                "Was expecting value for variable %d" % v_with_random_value
 
         self.first_variable = first_variable
 
