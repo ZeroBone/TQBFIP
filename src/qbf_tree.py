@@ -120,23 +120,28 @@ def _construct_node(qbf: QBF, p: int, random_choices: dict, first_variable: int)
 
 class QBFTree:
 
-    def __init__(self, qbf: QBF, p: int, random_choices: dict, first_variable: int):
-        assert first_variable >= 1
+    # first_var is the id of the first variable that has not yet been resolved
+    # this means that from that variable (inclusive), the arithmetization should
+    # be evaluated at zeros or ones for all variable assignments
+    # before the first_var, the value from the random_choices dictionary should be used
+    # for the calculation
+    def __init__(self, qbf: QBF, p: int, random_choices: dict, first_var: int):
+        assert first_var >= 1
 
         # if first_variable is one greater than the maximum id of an existent variable
         # then this means that the tree should be built for the matrix
         # which of course means that the tree will be simply one leaf node
-        assert first_variable <= qbf.get_variable_count() + 1
+        assert first_var <= qbf.get_variable_count() + 1
 
-        for v_with_random_value in range(1, first_variable):
+        for v_with_random_value in range(1, first_var):
             assert v_with_random_value in random_choices,\
                 "Was expecting value for variable %d" % v_with_random_value
 
-        self.first_variable = first_variable
+        self.first_variable = first_var
 
         # TODO: construct the qbf tree in a way such that random_choices are visible
 
-        self.root = _construct_node(qbf, p, random_choices, first_variable)
+        self.root = _construct_node(qbf, p, random_choices, first_var)
 
     def get_object_group(self):
         return self.root.get_object_group().center()

@@ -161,14 +161,9 @@ class AnimatingObserver(ProtocolObserver):
         )
 
         if self.operator_rect is None:
-            operator_rect_anim = Create(new_operator_rect)
+            self.scene.play(Create(new_operator_rect))
         else:
-            operator_rect_anim = ReplacementTransform(self.operator_rect, new_operator_rect)
-
-        self.scene.play(
-            operator_rect_anim,
-            self.c_variable.tracker.animate.set_value(new_c)
-        )
+            self.scene.play(ReplacementTransform(self.operator_rect, new_operator_rect))
 
         self.operator_rect = new_operator_rect
 
@@ -196,7 +191,8 @@ class AnimatingObserver(ProtocolObserver):
         )
 
         self.scene.play(
-            ReplacementTransform(self.qbf_tree.get_object_group(), new_qbf_tree.get_object_group())
+            ReplacementTransform(self.qbf_tree.get_object_group(), new_qbf_tree.get_object_group()),
+            self.c_variable.tracker.animate.set_value(new_c)
         )
 
         self.qbf_tree = new_qbf_tree
