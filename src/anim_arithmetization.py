@@ -6,7 +6,7 @@ class ArithmetizationScene(Scene):
 
     def construct(self):
 
-        qbf = example_2_formula()
+        qbf = default_example_formula()
 
         color_palette = [BLUE_C, RED_C, GREEN_C, GOLD_C]
 

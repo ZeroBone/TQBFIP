@@ -22,6 +22,21 @@ class ProtocolObserver:
         raise NotImplementedError()
 
 
+class DummyObserver(ProtocolObserver):
+
+    def __init__(self):
+        super().__init__()
+
+    def on_handshake(self, p: int, initial_c: int):
+        pass
+
+    def on_new_round(self, current_operator: ProofOperator, s, random_choices: dict, new_c: int):
+        pass
+
+    def on_terminated(self, accepted: bool):
+        pass
+
+
 def _log_random_choices(qbf: QBF, random_choices):
     log_str = ", ".join(("%s := %d" % (qbf.get_alias(var), val) for var, val in random_choices.items()))
     logger.info("[V]: Random choices: %s", log_str if log_str else "none")
@@ -38,7 +53,7 @@ def evaluate_s(s, x: int, p: int) -> int:
 
 
 def run_verifier(qbf: QBF, prover: Prover, p: int,
-                 seed: int = None, observer: ProtocolObserver = ProtocolObserver()):
+                 seed: int = None, observer: ProtocolObserver = DummyObserver()):
 
     observer.p = p
 

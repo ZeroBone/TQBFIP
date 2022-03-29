@@ -1,6 +1,24 @@
 from qbf import *
 
 
+def default_example_formula():
+
+    qbf = QBF()
+
+    x, y, z, w = range(1, 5)
+
+    qbf.add_variable(x, QBF.Q_EXISTS, "x")
+    qbf.add_variable(y, QBF.Q_FORALL, "y")
+    qbf.add_variable(z, QBF.Q_EXISTS, "z")
+    qbf.add_variable(w, QBF.Q_FORALL, "w")
+
+    qbf.add_clause({x, y, -z})
+    qbf.add_clause({-x, -y, -w})
+    qbf.add_clause({-y, w, z})
+
+    return qbf
+
+
 def simple_equality_formula():
 
     qbf = QBF()
@@ -35,24 +53,6 @@ def extended_equality_formula(make_unsat: bool = False):
     return qbf
 
 
-def example_2_formula():
-
-    qbf = QBF()
-
-    x, y, z, w = range(1, 5)
-
-    qbf.add_variable(x, QBF.Q_EXISTS, "x")
-    qbf.add_variable(y, QBF.Q_FORALL, "y")
-    qbf.add_variable(z, QBF.Q_EXISTS, "z")
-    qbf.add_variable(w, QBF.Q_FORALL, "w")
-
-    qbf.add_clause({x, y, -z})
-    qbf.add_clause({-x, -y, -w})
-    qbf.add_clause({-y, w, z})
-
-    return qbf
-
-
 def single_clause_or_formula(n: int):
 
     qbf = QBF()
@@ -61,5 +61,19 @@ def single_clause_or_formula(n: int):
         qbf.add_variable(x_i, QBF.Q_EXISTS, "x_%d" % x_i)
 
     qbf.add_clause(set([x_i for x_i in range(1, n + 1)]))
+
+    return qbf
+
+
+def forall_quantified_tautology():
+
+    qbf = QBF()
+
+    qbf.add_variable(1, QBF.Q_FORALL, "x")
+    qbf.add_variable(2, QBF.Q_FORALL, "y")
+    qbf.add_variable(3, QBF.Q_FORALL, "z")
+    qbf.add_variable(4, QBF.Q_FORALL, "w")
+
+    qbf.add_clause({1, -1})
 
     return qbf

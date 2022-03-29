@@ -118,8 +118,6 @@ class AnimatingObserver(ProtocolObserver):
             VGroup(self.c_variable, p_variable).arrange(RIGHT, buff=2)
         ).arrange(DOWN).to_edge(UP)
 
-        self.scene.add(self.top_group)
-
         self.operator_rect = None
 
         # qbf tree
@@ -134,9 +132,13 @@ class AnimatingObserver(ProtocolObserver):
         # make the created objects visible
 
         self.scene.play(
+            FadeIn(self.top_group),
             Create(self.bottom_group),
             Create(self.qbf_tree.get_object_group())
         )
+
+        self.scene.wait()
+        self.scene.wait(3)
 
     def _s_polynomial_to_mathtex(self, s):
 
@@ -215,7 +217,7 @@ class ProtocolScene(Scene):
             always_update_mobjects=False,
             random_seed=None,
             skip_animations=False,
-            qbf: QBF = example_2_formula()
+            qbf: QBF = default_example_formula()
     ):
         super().__init__(renderer, camera_class, always_update_mobjects, random_seed, skip_animations)
         self.qbf = qbf
@@ -228,4 +230,4 @@ class ProtocolScene(Scene):
 
         prover = HonestProver(self.qbf, p)
 
-        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self))
+        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self, 2))
