@@ -226,4 +226,4 @@ class ProtocolScene(Scene):
 
         prover = HonestProver(self.qbf, p)
 
-        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self, 2))
+        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self))

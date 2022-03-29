@@ -2,6 +2,22 @@ from manim import *
 from qbf import QBF
 
 
+class _TextBox:
+
+    def __init__(self, qbf: QBF, cur_var: int, value: int):
+
+        self.text = MathTex(qbf.get_variable_latex_operator(cur_var), "[%d]" % value)
+
+        self.text[0].set_color(RED_C if qbf.get_quantification(cur_var) == QBF.Q_FORALL else GOLD_C)
+
+        self.text.scale(.75)
+
+        self.box = SurroundingRectangle(self.text, corner_radius=.1, color=BLUE) \
+            .set_z_index(5)
+
+        self.group = VGroup(self.text, self.box)
+
+
 class QBFTreeNode:
 
     def __init__(self):
@@ -14,23 +30,63 @@ class QBFTreeNode:
         raise NotImplementedError()
 
 
-class QBFTreeNonLeafNode(QBFTreeNode):
+class QBFTreeRandomChoiceQuantifierNode(QBFTreeNode):
 
     def __init__(self, qbf: QBF, p: int, random_choices: dict, first_var: int, cur_var: int):
         super().__init__()
+
         assert first_var >= 1
         assert cur_var >= 1
+        assert cur_var < first_var, "the current variable is not a random choice variable"
+        assert cur_var in random_choices
+
+        self.v_child = _construct_node(qbf, p, random_choices, first_var, cur_var + 1)
+
+        self._value = self.v_child.get_value()
+
+        if qbf.get_quantification(cur_var) == QBF.Q_FORALL:
+            self._value *= self._value
+        else:
+            assert qbf.get_quantification(cur_var) == QBF.Q_EXISTS
+            self._value *= 2
+
+        self._value %= p
+
+        self.text_box = _TextBox(qbf, cur_var, self._value)
+
+        children_group = self.v_child.get_object_group()
+
+        # children_group.arrange(RIGHT)
+        self.text_box.group.next_to(children_group, UP)
+
+        self.v_line = Line(self.text_box.group.get_bottom(), children_group.get_top(), color=PURPLE)
+
+    def get_value(self) -> int:
+        return self._value
+
+    def get_object_group(self):
+
+        return VGroup(
+            self.text_box.group,
+            self.v_line,
+            self.v_child.get_object_group()
+        )
+
+
+class QBFTreeQuantifierNode(QBFTreeNode):
+
+    def __init__(self, qbf: QBF, p: int, random_choices: dict, first_var: int, cur_var: int):
+        super().__init__()
+
+        assert first_var >= 1
+        assert cur_var >= 1
+        assert cur_var >= first_var, "the current variable is a random choice variable"
 
         v_0_rc = random_choices.copy()
         v_1_rc = random_choices.copy()
 
-        if cur_var >= first_var:
-            v_0_rc[cur_var] = 0
-            v_1_rc[cur_var] = 1
-        else:
-            assert cur_var in random_choices
-            v_0_rc[cur_var] = random_choices[cur_var]
-            v_1_rc[cur_var] = random_choices[cur_var]
+        v_0_rc[cur_var] = 0
+        v_1_rc[cur_var] = 1
 
         self.v_0_child = _construct_node(qbf, p, v_0_rc, first_var, cur_var + 1)
         self.v_1_child = _construct_node(qbf, p, v_1_rc, first_var, cur_var + 1)
@@ -43,16 +99,7 @@ class QBFTreeNonLeafNode(QBFTreeNode):
 
         self._value %= p
 
-        self.text = MathTex(qbf.get_variable_latex_operator(cur_var), "[%d]" % self._value)
-
-        self.text[0].set_color(RED_C if qbf.get_quantification(cur_var) == QBF.Q_FORALL else GOLD_C)
-
-        self.text.scale(.75)
-
-        self.box = SurroundingRectangle(self.text, corner_radius=.1, color=BLUE)\
-            .set_z_index(5)
-
-        group = VGroup(self.text, self.box)
+        self.text_box = _TextBox(qbf, cur_var, self._value)
 
         v_0_group = self.v_0_child.get_object_group()
         v_1_group = self.v_1_child.get_object_group()
@@ -61,15 +108,15 @@ class QBFTreeNonLeafNode(QBFTreeNode):
 
         if cur_var == qbf.get_variable_count():
             # children are leafes, it would be a good idea to increase the buffer slightly
-            buff = group.width - min(v_0_group.width, v_1_group.width)
+            buff = self.text_box.group.width - min(v_0_group.width, v_1_group.width)
             children_group.arrange(RIGHT, buff=buff)
         else:
             children_group.arrange(RIGHT)
 
-        group.next_to(children_group, UP)
+        self.text_box.group.next_to(children_group, UP)
 
-        self.v_0_line = Line(group.get_left(), v_0_group.get_top(), color=RED_C)
-        self.v_1_line = Line(group.get_right(), v_1_group.get_top(), color=GREEN_C)
+        self.v_0_line = Line(self.text_box.group.get_left(), v_0_group.get_top(), color=RED_C)
+        self.v_1_line = Line(self.text_box.group.get_right(), v_1_group.get_top(), color=GREEN_C)
 
     def get_value(self) -> int:
         return self._value
@@ -80,7 +127,7 @@ class QBFTreeNonLeafNode(QBFTreeNode):
         v_1_group = self.v_1_child.get_object_group()
 
         return VGroup(
-            VGroup(self.text, self.box),
+            self.text_box.group,
             VGroup(self.v_0_line, self.v_1_line),
             VGroup(v_0_group, v_1_group)
         )
@@ -115,14 +162,19 @@ class QBFTreeLeafNode(QBFTreeNode):
 
 def _construct_node(qbf: QBF, p: int, random_choices: dict, first_var: int, cur_var: int = 1) -> QBFTreeNode:
     assert first_var >= 1
-    assert first_var <= qbf.get_variable_count()
+    assert first_var <= qbf.get_variable_count() + 1
     assert cur_var >= 1
     assert cur_var <= qbf.get_variable_count() + 1
 
     if cur_var > qbf.get_variable_count():
         return QBFTreeLeafNode(qbf, p, random_choices)
 
-    return QBFTreeNonLeafNode(qbf, p, random_choices, first_var, cur_var)
+    # the node is a quantifier node
+
+    if cur_var >= first_var:
+        return QBFTreeQuantifierNode(qbf, p, random_choices, first_var, cur_var)
+
+    return QBFTreeRandomChoiceQuantifierNode(qbf, p, random_choices, first_var, cur_var)
 
 
 class QBFTree:
