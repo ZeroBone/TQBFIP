@@ -140,11 +140,11 @@ class AnimatingObserver(ProtocolObserver):
         self.scene.wait()
         self.scene.wait(3)
 
-    def _s_polynomial_to_mathtex(self, s):
+    def _s_polynomial_to_mathtex(self, s, var_alias: str):
 
         s_cleansed = sympy.trunc(sympy.expand(s.as_expr()), self.p, s.gens)
 
-        return MathTex(sympy.latex(s_cleansed))
+        return MathTex("s(%s) =" % var_alias, sympy.latex(s_cleansed))
 
     def on_new_round(self, current_operator: ProofOperator, s, rc: dict, new_c: int, prev_c: int):
 
@@ -173,7 +173,7 @@ class AnimatingObserver(ProtocolObserver):
                                       % self.scene.qbf.get_alias(operator_variable))
         verifier_prover_message.next_to(self.verifier_prover_arrow, UP)
 
-        prover_verifier_message = self._s_polynomial_to_mathtex(s)
+        prover_verifier_message = self._s_polynomial_to_mathtex(s, self.scene.qbf.get_alias(operator_variable))
         prover_verifier_message.next_to(self.prover_verifier_arrow, UP)
 
         self.scene.play(Write(verifier_prover_message), GrowArrow(self.verifier_prover_arrow))
@@ -197,24 +197,37 @@ class AnimatingObserver(ProtocolObserver):
         elif self.scene.qbf.get_quantification(operator_variable) == QBF.Q_FORALL:
             # check that s(0) * s(1) = c
 
-            check_product = evaluate_s(s, 0, self.p) * evaluate_s(s, 1, self.p)
-            check_product %= self.p
+            s_0 = evaluate_s(s, 0, self.p)
+            s_1 = evaluate_s(s, 1, self.p)
 
-            assert check_product == prev_c
+            assert (s_0 * s_1) % self.p == prev_c
+
+            final_step = MathTex(r"%d = %d" % ((s_0 * s_1) % self.p, prev_c))
+            final_step[0].set_color(GREEN_C)
 
             verification_steps = [
-                MathTex(r"s(0) \cdot s(1) \stackrel{?}{=} c")
+                MathTex(r"s(0) \cdot s(1) \stackrel{?}{=} c"),
+                MathTex(r"%d \cdot %d \stackrel{?}{=} %d" % (s_0, s_1, prev_c)),
+                MathTex(r"%d \stackrel{?}{=} %d" % ((s_0 * s_1) % self.p, prev_c)),
+                final_step
             ]
 
         elif self.scene.qbf.get_quantification(operator_variable) == QBF.Q_EXISTS:
             # check that s(0) + s(1) = c
-            check_sum = evaluate_s(s, 0, self.p) + evaluate_s(s, 1, self.p)
-            check_sum %= self.p
 
-            assert check_sum == prev_c
+            s_0 = evaluate_s(s, 0, self.p)
+            s_1 = evaluate_s(s, 1, self.p)
+
+            assert (s_0 + s_1) % self.p == prev_c
+
+            final_step = MathTex(r"%d = %d" % ((s_0 + s_1) % self.p, prev_c))
+            final_step[0].set_color(GREEN_C)
 
             verification_steps = [
-                MathTex(r"s(0) + s(1) \stackrel{?}{=} c")
+                MathTex(r"s(0) + s(1) \stackrel{?}{=} c"),
+                MathTex(r"%d + %d \stackrel{?}{=} %d" % (s_0, s_1, prev_c)),
+                MathTex(r"%d \stackrel{?}{=} %d" % ((s_0 + s_1) % self.p, prev_c)),
+                final_step
             ]
 
         else:
@@ -228,10 +241,10 @@ class AnimatingObserver(ProtocolObserver):
 
             if _last_ver_step is None:
                 self.scene.play(FadeIn(verification_brace), FadeIn(ver_step))
-                self.scene.wait(1)
+                self.scene.wait(.4)
             else:
-                self.scene.play(ReplacementTransform(_last_ver_step, ver_step))
-                self.scene.wait(.5)
+                self.scene.play(ReplacementTransform(_last_ver_step, ver_step, run_time=.25))
+                self.scene.wait(.4)
 
             _last_ver_step = ver_step
 
