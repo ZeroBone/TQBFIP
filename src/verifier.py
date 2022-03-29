@@ -12,11 +12,14 @@ class ProtocolObserver:
     def __init__(self):
         self.p = None
 
-    def on_new_round(self, current_operator: ProofOperator, s, random_choices: dict):
-        pass
+    def on_handshake(self, p: int, initial_c: int):
+        raise NotImplementedError()
+
+    def on_new_round(self, current_operator: ProofOperator, s, random_choices: dict, new_c: int):
+        raise NotImplementedError()
 
     def on_terminated(self, accepted: bool):
-        pass
+        raise NotImplementedError()
 
 
 def _log_random_choices(qbf: QBF, random_choices):
@@ -45,6 +48,8 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
     c = prover.get_value_of_entire_polynomial()
 
     logger.info("[P]: Value = %d =: c" % c)
+
+    observer.on_handshake(p, c)
 
     if c == 0:
         # this is absurd, the prover has directly confessed that he
@@ -115,7 +120,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
         logger.info("[V]: s(a) = %d =: c", c)
 
-        observer.on_new_round(current_operator, s, random_choices)
+        observer.on_new_round(current_operator, s, random_choices, c)
 
         for variable_to_linearize in range(1, v + 1):
 
@@ -170,7 +175,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
             logger.info("[V]: s(a) = %d =: c" % c)
 
-            observer.on_new_round(current_operator, s, random_choices)
+            observer.on_new_round(current_operator, s, random_choices, c)
 
     observer.on_terminated(True)
     return True

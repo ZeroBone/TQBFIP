@@ -45,14 +45,33 @@ def _proof_operator_to_mathtex_index(op: ProofOperator):
 class AnimatingObserver(ProtocolObserver):
 
     # rounds_limit = 0 means no limit for the amount of rounds to be animated
-    def __init__(self, p: int, scene, rounds_limit: int = 0):
+    def __init__(self, scene, rounds_limit: int = 0):
         super().__init__()
 
         self._rounds_limit = rounds_limit
         self._rounds_counter = 0
 
-        self.p = p
         self.scene = scene
+
+        self.prover_group = None
+
+        self.verifier_group = None
+        self.bottom_group = None
+
+        self.verifier_prover_arrow = None
+        self.prover_verifier_arrow = None
+
+        self.proof_operators = None
+        self.c_variable = None
+
+        self.top_group = None
+        self.operator_rect = None
+
+        self.qbf_tree = None
+
+    def on_handshake(self, p: int, initial_c: int):
+
+        self.p = p
 
         # prover and verifier communication
 
@@ -72,8 +91,8 @@ class AnimatingObserver(ProtocolObserver):
         self.verifier_group = VGroup(verifier_tex, verifier_box)
         self.verifier_group.to_edge(LEFT)
 
-        self.prover_verifier_group = VGroup(self.prover_group, self.verifier_group)
-        self.prover_verifier_group.to_edge(DOWN)
+        self.bottom_group = VGroup(self.prover_group, self.verifier_group)
+        self.bottom_group.to_edge(DOWN)
 
         _title_direction = .5 * DOWN
 
@@ -90,9 +109,16 @@ class AnimatingObserver(ProtocolObserver):
         # proof operators
 
         self.proof_operators = _get_proof_operators_mathtex(self.scene.qbf)
-        self.proof_operators.to_edge(UP)
 
-        self.scene.add(self.proof_operators)
+        self.c_variable = Variable(initial_c, "c", num_decimal_places=0)
+        p_variable = Variable(self.p, "p", num_decimal_places=0)
+
+        self.top_group = VGroup(
+            self.proof_operators,
+            VGroup(self.c_variable, p_variable).arrange(RIGHT, buff=2)
+        ).arrange(DOWN).to_edge(UP)
+
+        self.scene.add(self.top_group)
 
         self.operator_rect = SurroundingRectangle(
             self.proof_operators[0]
@@ -111,7 +137,7 @@ class AnimatingObserver(ProtocolObserver):
 
         self.scene.play(
             Create(self.operator_rect),
-            Create(self.prover_verifier_group),
+            Create(self.bottom_group),
             Create(self.qbf_tree.get_object_group())
         )
 
@@ -121,25 +147,24 @@ class AnimatingObserver(ProtocolObserver):
 
         return MathTex(sympy.latex(s_cleansed))
 
-    def on_new_round(self, current_operator: ProofOperator, s, random_choices: dict):
-        # TODO: remove this debug printing
-        print("Round start", current_operator.to_string(self.scene.qbf), random_choices)
+    def on_new_round(self, current_operator: ProofOperator, s, random_choices: dict, new_c: int):
 
         self._rounds_counter += 1
 
         if self._rounds_limit != 0 and self._rounds_counter > self._rounds_limit:
             return
 
-        # TODO: add c as argument and add it to the animation
         # TODO: add random choices to the animation
-        # TODO: add p to the animation
 
         new_operator_rect = SurroundingRectangle(
             self.proof_operators[_proof_operator_to_mathtex_index(current_operator)],
             buff=.4 * SMALL_BUFF
         )
 
-        self.scene.play(ReplacementTransform(self.operator_rect, new_operator_rect))
+        self.scene.play(
+            ReplacementTransform(self.operator_rect, new_operator_rect),
+            self.c_variable.tracker.animate.set_value(new_c)
+        )
 
         self.operator_rect = new_operator_rect
 
@@ -201,4 +226,4 @@ class ProtocolScene(Scene):
 
         prover = HonestProver(self.qbf, p)
 
-        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(p, self))
+        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self))
