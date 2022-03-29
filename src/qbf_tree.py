@@ -16,32 +16,36 @@ class QBFTreeNode:
 
 class QBFTreeNonLeafNode(QBFTreeNode):
 
-    def __init__(self, qbf: QBF, p: int, random_choices: dict, variable: int):
+    def __init__(self, qbf: QBF, p: int, random_choices: dict, first_var: int, cur_var: int):
         super().__init__()
-        assert variable >= 1
-
-        self._v = variable
+        assert first_var >= 1
+        assert cur_var >= 1
 
         v_0_rc = random_choices.copy()
-        v_0_rc[self._v] = 0
-
         v_1_rc = random_choices.copy()
-        v_1_rc[self._v] = 1
 
-        self.v_0_child = _construct_node(qbf, p, v_0_rc, self._v + 1)
-        self.v_1_child = _construct_node(qbf, p, v_1_rc, self._v + 1)
+        if cur_var >= first_var:
+            v_0_rc[cur_var] = 0
+            v_1_rc[cur_var] = 1
+        else:
+            assert cur_var in random_choices
+            v_0_rc[cur_var] = random_choices[cur_var]
+            v_1_rc[cur_var] = random_choices[cur_var]
 
-        if qbf.get_quantification(self._v) == QBF.Q_FORALL:
+        self.v_0_child = _construct_node(qbf, p, v_0_rc, first_var, cur_var + 1)
+        self.v_1_child = _construct_node(qbf, p, v_1_rc, first_var, cur_var + 1)
+
+        if qbf.get_quantification(cur_var) == QBF.Q_FORALL:
             self._value = self.v_0_child.get_value() * self.v_1_child.get_value()
         else:
-            assert qbf.get_quantification(self._v) == QBF.Q_EXISTS
+            assert qbf.get_quantification(cur_var) == QBF.Q_EXISTS
             self._value = self.v_0_child.get_value() + self.v_1_child.get_value()
 
         self._value %= p
 
-        self.text = MathTex(qbf.get_variable_latex_operator(self._v), "[%d]" % self._value)
+        self.text = MathTex(qbf.get_variable_latex_operator(cur_var), "[%d]" % self._value)
 
-        self.text[0].set_color(RED_C if qbf.get_quantification(self._v) == QBF.Q_FORALL else GOLD_C)
+        self.text[0].set_color(RED_C if qbf.get_quantification(cur_var) == QBF.Q_FORALL else GOLD_C)
 
         self.text.scale(.75)
 
@@ -55,7 +59,7 @@ class QBFTreeNonLeafNode(QBFTreeNode):
 
         children_group = VGroup(v_0_group, v_1_group)
 
-        if self._v == qbf.get_variable_count():
+        if cur_var == qbf.get_variable_count():
             # children are leafes, it would be a good idea to increase the buffer slightly
             buff = group.width - min(v_0_group.width, v_1_group.width)
             children_group.arrange(RIGHT, buff=buff)
@@ -109,13 +113,16 @@ class QBFTreeLeafNode(QBFTreeNode):
         return VGroup(self.text, self.box)
 
 
-def _construct_node(qbf: QBF, p: int, random_choices: dict, first_variable: int) -> QBFTreeNode:
-    assert first_variable >= 1
+def _construct_node(qbf: QBF, p: int, random_choices: dict, first_var: int, cur_var: int = 1) -> QBFTreeNode:
+    assert first_var >= 1
+    assert first_var <= qbf.get_variable_count()
+    assert cur_var >= 1
+    assert cur_var <= qbf.get_variable_count() + 1
 
-    if first_variable > qbf.get_variable_count():
+    if cur_var > qbf.get_variable_count():
         return QBFTreeLeafNode(qbf, p, random_choices)
 
-    return QBFTreeNonLeafNode(qbf, p, random_choices, first_variable)
+    return QBFTreeNonLeafNode(qbf, p, random_choices, first_var, cur_var)
 
 
 class QBFTree:
