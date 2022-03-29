@@ -120,9 +120,7 @@ class AnimatingObserver(ProtocolObserver):
 
         self.scene.add(self.top_group)
 
-        self.operator_rect = SurroundingRectangle(
-            self.proof_operators[0]
-        )
+        self.operator_rect = None
 
         # qbf tree
 
@@ -136,7 +134,6 @@ class AnimatingObserver(ProtocolObserver):
         # make the created objects visible
 
         self.scene.play(
-            Create(self.operator_rect),
             Create(self.bottom_group),
             Create(self.qbf_tree.get_object_group())
         )
@@ -161,8 +158,13 @@ class AnimatingObserver(ProtocolObserver):
             buff=.4 * SMALL_BUFF
         )
 
+        if self.operator_rect is None:
+            operator_rect_anim = Create(new_operator_rect)
+        else:
+            operator_rect_anim = ReplacementTransform(self.operator_rect, new_operator_rect)
+
         self.scene.play(
-            ReplacementTransform(self.operator_rect, new_operator_rect),
+            operator_rect_anim,
             self.c_variable.tracker.animate.set_value(new_c)
         )
 
