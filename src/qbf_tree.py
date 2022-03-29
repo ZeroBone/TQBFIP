@@ -198,8 +198,6 @@ class QBFTree:
 
         self.first_variable = first_var
 
-        # TODO: construct the qbf tree in a way such that random_choices are visible
-
         self.root = _construct_node(qbf, p, random_choices, first_var)
 
     def get_object_group(self):

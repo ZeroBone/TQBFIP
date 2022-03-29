@@ -15,7 +15,12 @@ class ProtocolObserver:
     def on_handshake(self, p: int, initial_c: int):
         raise NotImplementedError()
 
-    def on_new_round(self, current_operator: ProofOperator, s, random_choices: dict, new_c: int):
+    def on_new_round(self,
+                     current_operator: ProofOperator,
+                     s,
+                     random_choices: dict,
+                     new_c: int,
+                     previous_c: int):
         raise NotImplementedError()
 
     def on_terminated(self, accepted: bool):
@@ -30,7 +35,12 @@ class DummyObserver(ProtocolObserver):
     def on_handshake(self, p: int, initial_c: int):
         pass
 
-    def on_new_round(self, current_operator: ProofOperator, s, random_choices: dict, new_c: int):
+    def on_new_round(self,
+                     current_operator: ProofOperator,
+                     s,
+                     random_choices: dict,
+                     new_c: int,
+                     previous_c: int):
         pass
 
     def on_terminated(self, accepted: bool):
@@ -108,8 +118,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
                 observer.on_terminated(False)
                 return False
 
-        else:
-            assert quantification == QBF.Q_EXISTS
+        elif quantification == QBF.Q_EXISTS:
 
             # check that s(0) + s(1) = c
             check_sum = evaluate_s(s, 0, p) + evaluate_s(s, 1, p)
@@ -122,6 +131,8 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
                             "meaning that the prover has sent a malformed s polynomial.")
                 observer.on_terminated(False)
                 return False
+        else:
+            assert False
 
         # choose a from F_p
         a = rng.randrange(p)
@@ -130,12 +141,14 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
         logger.info("[V]: Chose a = %d for variable %s", a, qbf.get_alias(v))
         _log_random_choices(qbf, random_choices)
 
+        _prev_c = c
+
         # calculate c = s(a)
         c = evaluate_s(s, a, p)
 
         logger.info("[V]: s(a) = %d =: c", c)
 
-        observer.on_new_round(current_operator, s, random_choices, c)
+        observer.on_new_round(current_operator, s, random_choices, c, _prev_c)
 
         for variable_to_linearize in range(1, v + 1):
 
@@ -185,12 +198,14 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             )
             _log_random_choices(qbf, random_choices)
 
+            _prev_c = c
+
             # calculate c = s(a)
             c = evaluate_s(s, a, p)
 
             logger.info("[V]: s(a) = %d =: c" % c)
 
-            observer.on_new_round(current_operator, s, random_choices, c)
+            observer.on_new_round(current_operator, s, random_choices, c, _prev_c)
 
     observer.on_terminated(True)
     return True

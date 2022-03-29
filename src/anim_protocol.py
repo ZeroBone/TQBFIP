@@ -1,7 +1,7 @@
 from manim import *
 from formulas import *
 from prover import ProofOperator, HonestProver
-from verifier import ProtocolObserver, run_verifier
+from verifier import ProtocolObserver, run_verifier, evaluate_s
 from qbf_tree import QBFTree
 
 
@@ -146,7 +146,7 @@ class AnimatingObserver(ProtocolObserver):
 
         return MathTex(sympy.latex(s_cleansed))
 
-    def on_new_round(self, current_operator: ProofOperator, s, random_choices: dict, new_c: int):
+    def on_new_round(self, current_operator: ProofOperator, s, rc: dict, new_c: int, prev_c: int):
 
         self._rounds_counter += 1
 
@@ -183,10 +183,66 @@ class AnimatingObserver(ProtocolObserver):
         self.scene.wait(1)
         self.scene.play(FadeOut(prover_verifier_message), FadeOut(self.prover_verifier_arrow))
 
+        # verification of the s polynomial by the verifier animation
+
+        verification_brace = Brace(self.verifier_group, RIGHT)
+
+        if current_operator.is_linearity_operator():
+
+            verification_steps = [
+                MathTex(r"a_1 \cdot s(1) + (1 - a_1) \cdot s(0) \stackrel{?}{=} c"),
+                MathTex(r"a_1 \cdot s(1) + (1 - a_1) \cdot s(0) \stackrel{?}{=} %d" % prev_c),
+            ]
+
+        elif self.scene.qbf.get_quantification(operator_variable) == QBF.Q_FORALL:
+            # check that s(0) * s(1) = c
+
+            check_product = evaluate_s(s, 0, self.p) * evaluate_s(s, 1, self.p)
+            check_product %= self.p
+
+            assert check_product == prev_c
+
+            verification_steps = [
+                MathTex(r"s(0) \cdot s(1) \stackrel{?}{=} c")
+            ]
+
+        elif self.scene.qbf.get_quantification(operator_variable) == QBF.Q_EXISTS:
+            # check that s(0) + s(1) = c
+            check_sum = evaluate_s(s, 0, self.p) + evaluate_s(s, 1, self.p)
+            check_sum %= self.p
+
+            assert check_sum == prev_c
+
+            verification_steps = [
+                MathTex(r"s(0) + s(1) \stackrel{?}{=} c")
+            ]
+
+        else:
+            assert False
+
+        _last_ver_step = None
+
+        for ver_step in verification_steps:
+
+            ver_step.next_to(verification_brace, RIGHT)
+
+            if _last_ver_step is None:
+                self.scene.play(FadeIn(verification_brace), FadeIn(ver_step))
+                self.scene.wait(1)
+            else:
+                self.scene.play(ReplacementTransform(_last_ver_step, ver_step))
+                self.scene.wait(.5)
+
+            _last_ver_step = ver_step
+
+        self.scene.play(FadeOut(verification_brace), FadeOut(_last_ver_step))
+
+        # qbf tree
+
         new_qbf_tree = QBFTree(
             self.scene.qbf,
             self.p,
-            random_choices,
+            rc,
             current_operator.get_leftmost_variable_that_is_not_yet_resolved()
         )
 
@@ -226,4 +282,4 @@ class ProtocolScene(Scene):
 
         prover = HonestProver(self.qbf, p)
 
-        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self))
+        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self, 2))
