@@ -146,7 +146,13 @@ class AnimatingObserver(ProtocolObserver):
 
         return MathTex("s(%s) =" % var_alias, sympy.latex(s_cleansed))
 
-    def on_new_round(self, current_operator: ProofOperator, s, rc: dict, new_c: int, prev_c: int):
+    def on_new_round(self,
+                     current_operator: ProofOperator,
+                     s,
+                     prev_c: int,
+                     new_rc: dict,
+                     new_c: int,
+                     prev_var_rc: int = None):
 
         self._rounds_counter += 1
 
@@ -187,18 +193,40 @@ class AnimatingObserver(ProtocolObserver):
 
         verification_brace = Brace(self.verifier_group, RIGHT)
 
+        s_0 = evaluate_s(s, 0, self.p)
+        s_1 = evaluate_s(s, 1, self.p)
+
         if current_operator.is_linearity_operator():
 
+            assert prev_var_rc is not None
+
+            lin_var = self.scene.qbf.get_alias(current_operator.lv)
+
+            check_value = (prev_var_rc * s_1 + s_0 - prev_var_rc * s_0) % self.p
+
+            assert check_value == prev_c
+
+            final_step = MathTex(r"%d = %d" % (check_value, prev_c))
+            final_step[0].set_color(GREEN_C)
+
             verification_steps = [
-                MathTex(r"a_1 \cdot s(1) + (1 - a_1) \cdot s(0) \stackrel{?}{=} c"),
-                MathTex(r"a_1 \cdot s(1) + (1 - a_1) \cdot s(0) \stackrel{?}{=} %d" % prev_c),
+                MathTex(r"%s \cdot s(1) + (1 - %s) \cdot s(0) \stackrel{?}{=} c" %
+                        (lin_var, lin_var)),
+                MathTex(r"%s \cdot s(1) + s(0) - %s \cdot s(0) \stackrel{?}{=} c" %
+                        (lin_var, lin_var)),
+                MathTex(r"%s \cdot %d + %d - %s \cdot %d \stackrel{?}{=} %d" %
+                        (lin_var, s_1, s_0, lin_var, s_0, prev_c)),
+                MathTex(r"%d \cdot %d + %d - %d \cdot %d \stackrel{?}{=} %d" %
+                        (prev_var_rc, s_1, s_0, prev_var_rc, s_0, prev_c)),
+                MathTex(r"%d + %d - %d \stackrel{?}{=} %d" %
+                        ((prev_var_rc * s_1) % self.p, s_0, (prev_var_rc * s_0) % self.p, prev_c)),
+                MathTex(r"%d \stackrel{?}{=} %d" %
+                        (check_value, prev_c)),
+                final_step
             ]
 
         elif self.scene.qbf.get_quantification(operator_variable) == QBF.Q_FORALL:
             # check that s(0) * s(1) = c
-
-            s_0 = evaluate_s(s, 0, self.p)
-            s_1 = evaluate_s(s, 1, self.p)
 
             assert (s_0 * s_1) % self.p == prev_c
 
@@ -214,9 +242,6 @@ class AnimatingObserver(ProtocolObserver):
 
         elif self.scene.qbf.get_quantification(operator_variable) == QBF.Q_EXISTS:
             # check that s(0) + s(1) = c
-
-            s_0 = evaluate_s(s, 0, self.p)
-            s_1 = evaluate_s(s, 1, self.p)
 
             assert (s_0 + s_1) % self.p == prev_c
 
@@ -255,7 +280,7 @@ class AnimatingObserver(ProtocolObserver):
         new_qbf_tree = QBFTree(
             self.scene.qbf,
             self.p,
-            rc,
+            new_rc,
             current_operator.get_leftmost_variable_that_is_not_yet_resolved()
         )
 

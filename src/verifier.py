@@ -18,9 +18,10 @@ class ProtocolObserver:
     def on_new_round(self,
                      current_operator: ProofOperator,
                      s,
-                     random_choices: dict,
+                     prev_c: int,
+                     new_rc: dict,
                      new_c: int,
-                     previous_c: int):
+                     prev_var_rc: int = None):
         raise NotImplementedError()
 
     def on_terminated(self, accepted: bool):
@@ -38,9 +39,10 @@ class DummyObserver(ProtocolObserver):
     def on_new_round(self,
                      current_operator: ProofOperator,
                      s,
-                     random_choices: dict,
+                     prev_c: int,
+                     new_rc: dict,
                      new_c: int,
-                     previous_c: int):
+                     prev_var_rc: int = None):
         pass
 
     def on_terminated(self, accepted: bool):
@@ -84,7 +86,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
     rng = Random(seed)
 
-    random_choices = {}
+    rc = {}
 
     for v in range(1, qbf.get_variable_count() + 1):
 
@@ -92,12 +94,12 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
         logger.info("-" * 30)
         logger.info("Starting new round. Current operator: %s", current_operator.to_string(qbf))
-        _log_random_choices(qbf, random_choices)
+        _log_random_choices(qbf, rc)
 
         # noinspection DuplicatedCode
         logger.info("[V]: Asking prover to send s(%s) = h(%s)", qbf.get_alias(v), qbf.get_alias(v))
 
-        s = prover.get_operator_polynomial(current_operator, random_choices)
+        s = prover.get_operator_polynomial(current_operator, rc)
 
         logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(v), _poly_to_str(s))
         logger.info("[P]: deg(s(%s)) = %s", qbf.get_alias(v), s.degree())
@@ -136,10 +138,10 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
         # choose a from F_p
         a = rng.randrange(p)
-        random_choices[v] = a
+        rc[v] = a
 
         logger.info("[V]: Chose a = %d for variable %s", a, qbf.get_alias(v))
-        _log_random_choices(qbf, random_choices)
+        _log_random_choices(qbf, rc)
 
         _prev_c = c
 
@@ -148,7 +150,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
         logger.info("[V]: s(a) = %d =: c", c)
 
-        observer.on_new_round(current_operator, s, random_choices, c, _prev_c)
+        observer.on_new_round(current_operator, s, _prev_c, rc, c)
 
         for variable_to_linearize in range(1, v + 1):
 
@@ -167,7 +169,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
                 qbf.get_alias(variable_to_linearize)
             )
 
-            s = prover.get_operator_polynomial(current_operator, random_choices)
+            s = prover.get_operator_polynomial(current_operator, rc)
 
             logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(variable_to_linearize), _poly_to_str(s))
             logger.info("[P]: deg(s(%s)) = %s", qbf.get_alias(variable_to_linearize), s.degree())
@@ -175,9 +177,9 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             s_0 = evaluate_s(s, 0, p)
             s_1 = evaluate_s(s, 1, p)
 
-            a_for_x = random_choices[variable_to_linearize]
+            lin_var_val = rc[variable_to_linearize]
 
-            check_sum = (a_for_x * s_1 + (1 - a_for_x) * s_0) % p
+            check_sum = (lin_var_val * s_1 + (1 - lin_var_val) * s_0) % p
 
             logger.info("[V]: a_1 * s_1 + (1 - a_1) * s_0 = %d, expecting to be equal to c = %d", check_sum, c)
 
@@ -189,14 +191,14 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
             # choose a from F_p
             a = rng.randrange(p)
-            random_choices[variable_to_linearize] = a
+            rc[variable_to_linearize] = a
 
             logger.info(
                 "[V]: Re-chose a = %d for variable %s (while linearizing it)",
                 a,
                 qbf.get_alias(variable_to_linearize)
             )
-            _log_random_choices(qbf, random_choices)
+            _log_random_choices(qbf, rc)
 
             _prev_c = c
 
@@ -205,7 +207,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
             logger.info("[V]: s(a) = %d =: c" % c)
 
-            observer.on_new_round(current_operator, s, random_choices, c, _prev_c)
+            observer.on_new_round(current_operator, s, _prev_c, rc, c, lin_var_val)
 
     observer.on_terminated(True)
     return True
