@@ -32,15 +32,15 @@ class QBFTreeNode:
 
 class QBFTreeRandomChoiceQuantifierNode(QBFTreeNode):
 
-    def __init__(self, qbf: QBF, p: int, random_choices: dict, first_var: int, cur_var: int):
+    def __init__(self, qbf: QBF, p: int, rc: dict, first_var: int, cur_var: int):
         super().__init__()
 
         assert first_var >= 1
         assert cur_var >= 1
         assert cur_var < first_var, "the current variable is not a random choice variable"
-        assert cur_var in random_choices
+        assert cur_var in rc
 
-        self.v_child = _construct_node(qbf, p, random_choices, first_var, cur_var + 1)
+        self.v_child = _construct_node(qbf, p, rc, first_var, cur_var + 1)
 
         self._value = self.v_child.get_value()
 
@@ -75,15 +75,15 @@ class QBFTreeRandomChoiceQuantifierNode(QBFTreeNode):
 
 class QBFTreeQuantifierNode(QBFTreeNode):
 
-    def __init__(self, qbf: QBF, p: int, random_choices: dict, first_var: int, cur_var: int):
+    def __init__(self, qbf: QBF, p: int, rc: dict, first_var: int, cur_var: int):
         super().__init__()
 
         assert first_var >= 1
         assert cur_var >= 1
         assert cur_var >= first_var, "the current variable is a random choice variable"
 
-        v_0_rc = random_choices.copy()
-        v_1_rc = random_choices.copy()
+        v_0_rc = rc.copy()
+        v_1_rc = rc.copy()
 
         v_0_rc[cur_var] = 0
         v_1_rc[cur_var] = 1
@@ -135,12 +135,12 @@ class QBFTreeQuantifierNode(QBFTreeNode):
 
 class QBFTreeLeafNode(QBFTreeNode):
 
-    def __init__(self, qbf: QBF, p: int, random_choices: dict):
+    def __init__(self, qbf: QBF, p: int, rc: dict):
         super().__init__()
 
         eval_subs = {}
 
-        for var, val in random_choices.items():
+        for var, val in rc.items():
             eval_subs[qbf.get_symbol(var)] = val
 
         arithmetization = qbf.arithmetize_matrix()
@@ -160,21 +160,21 @@ class QBFTreeLeafNode(QBFTreeNode):
         return VGroup(self.text, self.box)
 
 
-def _construct_node(qbf: QBF, p: int, random_choices: dict, first_var: int, cur_var: int = 1) -> QBFTreeNode:
+def _construct_node(qbf: QBF, p: int, rc: dict, first_var: int, cur_var: int = 1) -> QBFTreeNode:
     assert first_var >= 1
     assert first_var <= qbf.get_variable_count() + 1
     assert cur_var >= 1
     assert cur_var <= qbf.get_variable_count() + 1
 
     if cur_var > qbf.get_variable_count():
-        return QBFTreeLeafNode(qbf, p, random_choices)
+        return QBFTreeLeafNode(qbf, p, rc)
 
     # the node is a quantifier node
 
     if cur_var >= first_var:
-        return QBFTreeQuantifierNode(qbf, p, random_choices, first_var, cur_var)
+        return QBFTreeQuantifierNode(qbf, p, rc, first_var, cur_var)
 
-    return QBFTreeRandomChoiceQuantifierNode(qbf, p, random_choices, first_var, cur_var)
+    return QBFTreeRandomChoiceQuantifierNode(qbf, p, rc, first_var, cur_var)
 
 
 class QBFTree:
@@ -182,9 +182,9 @@ class QBFTree:
     # first_var is the id of the first variable that has not yet been resolved
     # this means that from that variable (inclusive), the arithmetization should
     # be evaluated at zeros or ones for all variable assignments
-    # before the first_var, the value from the random_choices dictionary should be used
+    # before the first_var, the value from the rc dictionary should be used
     # for the calculation
-    def __init__(self, qbf: QBF, p: int, random_choices: dict, first_var: int):
+    def __init__(self, qbf: QBF, p: int, rc: dict, first_var: int):
         assert first_var >= 1
 
         # if first_variable is one greater than the maximum id of an existent variable
@@ -193,12 +193,10 @@ class QBFTree:
         assert first_var <= qbf.get_variable_count() + 1
 
         for v_with_random_value in range(1, first_var):
-            assert v_with_random_value in random_choices,\
+            assert v_with_random_value in rc,\
                 "Was expecting value for variable %d" % v_with_random_value
 
-        self.first_variable = first_var
-
-        self.root = _construct_node(qbf, p, random_choices, first_var)
+        self.root = _construct_node(qbf, p, rc, first_var)
 
     def get_object_group(self):
         return self.root.get_object_group().center()

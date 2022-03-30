@@ -4,7 +4,7 @@ In complexity theory, it is well known that IP = PSPACE ([Shamir's Theorem](http
 
 Apart from the implementation of the protocol itself, this project contains a clean, detailed & generic renderer of a video animation for the entire protocol. The goal of this animation is to visualize how exactly everything works in the protocol, both before as well as during the communication. Concretely, the following stages are animated:
 
-* Arithmetization, that is, the conversion of the QBF sentence into a polynomial
+* Arithmetization, that is, the conversion of the QBF matrix into a polynomial
 * Communication between the prover and the verifier, that is, how the prover shows the truth of the QBF sentence and how the verifier checks that the proof presented is indeed correct.
 
 Overall, this project is intended to be used for educational purposes.

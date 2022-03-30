@@ -315,18 +315,22 @@ class AnimatingObserver(ProtocolObserver):
         self.scene.play(UpdateFromAlphaFunc(a_var, _randomize_a_var, rate_func=rate_functions.linear))
         self.scene.wait(.5)
 
-        a_picked_s_a_calculated = MathTex(
-            r"a = %d" % picked_a_value,
-            r"\Rightarrow %s := a = %d, c := s(a) = %d" %
+        a_picked_s_a_calculated_1 = MathTex(r"a = %d \Rightarrow" % picked_a_value)
+
+        a_picked_s_a_calculated_2 = MathTex(
+            r"&%s := a = %d \\ &c := s(a) = %d" %
             (self.scene.qbf.get_name(operator_variable), picked_a_value, new_c)
         )
-        a_picked_s_a_calculated.next_to(verification_brace, RIGHT)
+
+        a_picked_s_a_calculated_group = VGroup(a_picked_s_a_calculated_1, a_picked_s_a_calculated_2)\
+            .arrange(RIGHT)\
+            .next_to(verification_brace, RIGHT)
 
         self.scene.play(FadeOut(a_var))
-        self.scene.play(Write(a_picked_s_a_calculated))
+        self.scene.play(Write(a_picked_s_a_calculated_group))
         self.scene.wait(.8)
 
-        self.scene.play(FadeOut(a_picked_s_a_calculated), FadeOut(verification_brace))
+        self.scene.play(FadeOut(a_picked_s_a_calculated_group), FadeOut(verification_brace))
 
         # qbf tree and new variable values
 
