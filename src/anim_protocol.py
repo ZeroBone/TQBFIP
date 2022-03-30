@@ -127,7 +127,7 @@ class AnimatingObserver(ProtocolObserver):
         vars_row = VGroup(
             *self.rc_vars,
             proof_vars_group_surrounded
-        ).scale(.64).arrange(RIGHT, buff=.8)
+        ).arrange(RIGHT, buff=.8)
 
         self.top_group = VGroup(
             self.proof_operators,
@@ -310,7 +310,7 @@ class AnimatingObserver(ProtocolObserver):
 
         if not current_operator.is_linearity_operator():
             cur_rc_var.tracker.set_value(new_rc[operator_variable])
-            _rc_var_update_anim = FadeIn(cur_rc_var, shift=DOWN)
+            _rc_var_update_anim = Write(cur_rc_var)
         else:
             _rc_var_update_anim = cur_rc_var.tracker.animate.set_value(new_rc[operator_variable])
 
