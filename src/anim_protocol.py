@@ -309,7 +309,7 @@ class AnimatingObserver(ProtocolObserver):
         assert operator_variable in new_rc
 
         if not current_operator.is_linearity_operator():
-            cur_rc_var.set(value=new_rc[operator_variable])
+            cur_rc_var.tracker.set_value(new_rc[operator_variable])
             _rc_var_update_anim = FadeIn(cur_rc_var, shift=DOWN)
         else:
             _rc_var_update_anim = cur_rc_var.tracker.animate.set_value(new_rc[operator_variable])
@@ -351,4 +351,4 @@ class ProtocolScene(Scene):
 
         prover = HonestProver(self.qbf, p)
 
-        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self, 2))
+        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self, 5))
