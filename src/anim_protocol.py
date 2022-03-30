@@ -295,19 +295,28 @@ class AnimatingObserver(ProtocolObserver):
         self.scene.play(FadeOut(_last_ver_step))
         self.scene.wait()
 
+        # random picking of a
+
+        assert operator_variable in new_rc
+        picked_a_value = new_rc[operator_variable]
+
         a_var = Variable(
             random.randrange(self.p),
             Tex("Picking randomnly $ a $"), num_decimal_places=0)
 
         a_var.next_to(verification_brace, RIGHT)
 
-        def _randomize_a_var(_a_var):
-            a_var.tracker.set_value(random.randrange(self.p))
+        def _randomize_a_var(_a_var, rfv: float):
+            if rfv == 1.0:
+                a_var.tracker.set_value(picked_a_value)
+            else:
+                a_var.tracker.set_value(random.randrange(self.p))
 
-        self.scene.play(UpdateFromFunc(a_var, _randomize_a_var))
-        a_var.tracker.set_value(new_rc[operator_variable])
-
+        # actually it is irrelevant what rate_func we use since we only use the rate function's
+        # value to determine the last frame of the animation
+        self.scene.play(UpdateFromAlphaFunc(a_var, _randomize_a_var, rate_func=rate_functions.linear))
         self.scene.wait(1)
+
         self.scene.play(FadeOut(a_var), FadeOut(verification_brace))
 
         # qbf tree and new variable values
@@ -323,13 +332,11 @@ class AnimatingObserver(ProtocolObserver):
 
         cur_rc_var = self.rc_vars[operator_variable - 1]
 
-        assert operator_variable in new_rc
-
         if not current_operator.is_linearity_operator():
-            cur_rc_var.tracker.set_value(new_rc[operator_variable])
+            cur_rc_var.tracker.set_value(picked_a_value)
             _rc_var_update_anim = Write(cur_rc_var)
         else:
-            _rc_var_update_anim = cur_rc_var.tracker.animate.set_value(new_rc[operator_variable])
+            _rc_var_update_anim = cur_rc_var.tracker.animate.set_value(picked_a_value)
 
         self.scene.play(
             ReplacementTransform(self.qbf_tree.get_object_group(), new_qbf_tree.get_object_group()),
