@@ -117,7 +117,7 @@ class AnimatingObserver(ProtocolObserver):
             for v in self.scene.qbf.get_variables()
         ]
 
-        self.c_variable = Variable(self.p, "c", num_decimal_places=0)
+        self.c_variable = Variable(initial_c, "c", num_decimal_places=0)
         p_variable = Variable(self.p, "p", num_decimal_places=0)
 
         proof_vars_group = VGroup(self.c_variable, p_variable).arrange(RIGHT, buff=.8)
@@ -136,8 +136,6 @@ class AnimatingObserver(ProtocolObserver):
         ).arrange(DOWN).to_edge(UP)
 
         vars_row.remove(*self.rc_vars)
-
-        self.c_variable.set(value=initial_c)
 
         self.operator_rect = None
 
@@ -315,9 +313,20 @@ class AnimatingObserver(ProtocolObserver):
         # actually it is irrelevant what rate_func we use since we only use the rate function's
         # value to determine the last frame of the animation
         self.scene.play(UpdateFromAlphaFunc(a_var, _randomize_a_var, rate_func=rate_functions.linear))
-        self.scene.wait(1)
+        self.scene.wait(.5)
 
-        self.scene.play(FadeOut(a_var), FadeOut(verification_brace))
+        a_picked_s_a_calculated = MathTex(
+            r"a = %d" % picked_a_value,
+            r"\Rightarrow %s := a = %d, c := s(a) = %d" %
+            (self.scene.qbf.get_name(operator_variable), picked_a_value, new_c)
+        )
+        a_picked_s_a_calculated.next_to(verification_brace, RIGHT)
+
+        self.scene.play(FadeOut(a_var))
+        self.scene.play(Write(a_picked_s_a_calculated))
+        self.scene.wait(.8)
+
+        self.scene.play(FadeOut(a_picked_s_a_calculated), FadeOut(verification_brace))
 
         # qbf tree and new variable values
 
@@ -327,8 +336,6 @@ class AnimatingObserver(ProtocolObserver):
             new_rc,
             current_operator.get_leftmost_variable_that_is_not_yet_resolved()
         )
-
-        # TODO: show a in the animation
 
         cur_rc_var = self.rc_vars[operator_variable - 1]
 

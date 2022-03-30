@@ -7,12 +7,15 @@ Apart from the implementation of the protocol itself, this project contains a cl
 * Arithmetization, that is, the conversion of the QBF sentence into a polynomial
 * Communication between the prover and the verifier, that is, how the prover shows the truth of the QBF sentence and how the verifier checks that the proof presented is indeed correct.
 
+Overall, this project is intended to be used for educational purposes.
+
 ## Installation
 
 **Python version**: 3.9.5 or newer
 
-**Python dependencies** to be installed:
+**Required python dependencies**:
 
+* [NumPy](https://numpy.org/) v1.19 or newer
 * [SymPy](https://www.sympy.org/) 1.10.1 or newer
 * [Manim Community Edition](https://www.manim.community/) v0.15.1 or newer
 
@@ -20,7 +23,7 @@ Apart from the implementation of the protocol itself, this project contains a cl
 
 ## Usage
 
-This project is intended to be used for educational purposes. TBA
+TBA
 
 ## Copyright
 
