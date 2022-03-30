@@ -62,6 +62,7 @@ class AnimatingObserver(ProtocolObserver):
         self.prover_verifier_arrow = None
 
         self.proof_operators = None
+        self.rc_vars = None
         self.c_variable = None
 
         self.top_group = None
@@ -106,17 +107,36 @@ class AnimatingObserver(ProtocolObserver):
             self.verifier_group.get_right() + _title_direction
         )
 
-        # proof operators
+        # proof operators and the row underneath (with the variables)
 
         self.proof_operators = _get_proof_operators_mathtex(self.scene.qbf)
 
-        self.c_variable = Variable(initial_c, "c", num_decimal_places=0)
+        self.rc_vars = [
+            Variable(self.p, v.name, num_decimal_places=0)
+            for v in self.scene.qbf.get_variables()
+        ]
+
+        self.c_variable = Variable(self.p, "c", num_decimal_places=0)
         p_variable = Variable(self.p, "p", num_decimal_places=0)
+
+        proof_vars_group = VGroup(self.c_variable, p_variable).arrange(RIGHT, buff=.8)
+        proof_vars_surrounding = SurroundingRectangle(proof_vars_group, color=GRAY,
+                                                      corner_radius=.1, buff=.25)
+        proof_vars_group_surrounded = VGroup(proof_vars_group, proof_vars_surrounding)
+
+        vars_row = VGroup(
+            *self.rc_vars,
+            proof_vars_group_surrounded
+        ).scale(.64).arrange(RIGHT, buff=.8)
 
         self.top_group = VGroup(
             self.proof_operators,
-            VGroup(self.c_variable, p_variable).arrange(RIGHT, buff=2)
+            vars_row
         ).arrange(DOWN).to_edge(UP)
+
+        vars_row.remove(*self.rc_vars)
+
+        self.c_variable.set(value=initial_c)
 
         self.operator_rect = None
 
@@ -133,8 +153,8 @@ class AnimatingObserver(ProtocolObserver):
 
         self.scene.play(
             FadeIn(self.top_group),
-            Create(self.bottom_group),
-            Create(self.qbf_tree.get_object_group())
+            Create(self.qbf_tree.get_object_group()),
+            FadeIn(self.bottom_group)
         )
 
         self.scene.wait()
@@ -159,8 +179,6 @@ class AnimatingObserver(ProtocolObserver):
         if self._rounds_limit != 0 and self._rounds_counter > self._rounds_limit:
             return
 
-        # TODO: add random choices to the animation
-
         new_operator_rect = SurroundingRectangle(
             self.proof_operators[_proof_operator_to_mathtex_index(current_operator)],
             buff=.4 * SMALL_BUFF
@@ -176,10 +194,10 @@ class AnimatingObserver(ProtocolObserver):
         operator_variable = current_operator.get_primary_variable()
 
         verifier_prover_message = Tex("Please send me $ s(%s) $"
-                                      % self.scene.qbf.get_alias(operator_variable))
+                                      % self.scene.qbf.get_name(operator_variable))
         verifier_prover_message.next_to(self.verifier_prover_arrow, UP)
 
-        prover_verifier_message = self._s_polynomial_to_mathtex(s, self.scene.qbf.get_alias(operator_variable))
+        prover_verifier_message = self._s_polynomial_to_mathtex(s, self.scene.qbf.get_name(operator_variable))
         prover_verifier_message.next_to(self.prover_verifier_arrow, UP)
 
         self.scene.play(Write(verifier_prover_message), GrowArrow(self.verifier_prover_arrow))
@@ -200,7 +218,7 @@ class AnimatingObserver(ProtocolObserver):
 
             assert prev_var_rc is not None
 
-            lin_var = self.scene.qbf.get_alias(current_operator.lv)
+            lin_var = self.scene.qbf.get_name(current_operator.lv)
 
             check_value = (prev_var_rc * s_1 + s_0 - prev_var_rc * s_0) % self.p
 
@@ -275,7 +293,7 @@ class AnimatingObserver(ProtocolObserver):
 
         self.scene.play(FadeOut(verification_brace), FadeOut(_last_ver_step))
 
-        # qbf tree
+        # qbf tree and new variable values
 
         new_qbf_tree = QBFTree(
             self.scene.qbf,
@@ -284,9 +302,22 @@ class AnimatingObserver(ProtocolObserver):
             current_operator.get_leftmost_variable_that_is_not_yet_resolved()
         )
 
+        # TODO: show a in the animation
+
+        cur_rc_var = self.rc_vars[operator_variable - 1]
+
+        assert operator_variable in new_rc
+
+        if not current_operator.is_linearity_operator():
+            cur_rc_var.set(value=new_rc[operator_variable])
+            _rc_var_update_anim = FadeIn(cur_rc_var, shift=DOWN)
+        else:
+            _rc_var_update_anim = cur_rc_var.tracker.animate.set_value(new_rc[operator_variable])
+
         self.scene.play(
             ReplacementTransform(self.qbf_tree.get_object_group(), new_qbf_tree.get_object_group()),
-            self.c_variable.tracker.animate.set_value(new_c)
+            self.c_variable.tracker.animate.set_value(new_c),
+            _rc_var_update_anim
         )
 
         self.qbf_tree = new_qbf_tree

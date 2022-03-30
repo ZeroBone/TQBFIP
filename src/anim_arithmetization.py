@@ -14,7 +14,7 @@ class ArithmetizationScene(Scene):
 
         p_phi = MathTex(
             r"P_{\varphi}(%s)" % ",".join([
-                qbf.get_alias(v + 1) for v in range(qbf.get_variable_count())
+                qbf.get_name(v + 1) for v in range(qbf.get_variable_count())
             ]),
             r"= \quad",
             *qbf.get_matrix_arithmetization_latex_array()
@@ -37,7 +37,7 @@ class ArithmetizationScene(Scene):
 
         for v in range(qbf.get_variable_count()):
             qbf_formula.set_color_by_tex(
-                "%s" % qbf.get_alias(v + 1),
+                "%s" % qbf.get_name(v + 1),
                 color_palette[v % len(color_palette)]
             )
 

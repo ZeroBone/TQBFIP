@@ -65,15 +65,15 @@ class ProofOperator:
     def to_string(self, context: QBF) -> str:
 
         if self.lv != 0:
-            return "L_{%s}" % context.get_alias(self.lv)
+            return "L_{%s}" % context.get_name(self.lv)
 
         quantification = context.get_quantification(self.v)
 
         if quantification == QBF.Q_FORALL:
-            return "A_{%s}" % context.get_alias(self.v)
+            return "A_{%s}" % context.get_name(self.v)
         else:
             assert quantification == QBF.Q_EXISTS
-            return "E_{%s}" % context.get_alias(self.v)
+            return "E_{%s}" % context.get_name(self.v)
 
 
 class Prover:

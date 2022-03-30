@@ -15,10 +15,10 @@ def _literal_to_index(literal: int) -> int:
 
 class QBFVariable:
 
-    def __init__(self, quantification: bool, alias: str):
+    def __init__(self, quantification: bool, name: str):
         self.quantification = quantification
-        self.alias = alias
-        self.symbol = sympy.Symbol(self.alias, integer=True)
+        self.name = name
+        self.symbol = sympy.Symbol(self.name, integer=True)
 
     def get_latex_symbol(self, b_index: int) -> str:
 
@@ -29,9 +29,9 @@ class QBFVariable:
     def get_operator_latex(self) -> str:
 
         if self.quantification == QBF.Q_FORALL:
-            return r"\forall_{%s}" % self.alias
+            return r"\forall_{%s}" % self.name
 
-        return r"\exists_{%s}" % self.alias
+        return r"\exists_{%s}" % self.name
 
 
 def _intersperse(arr: list, separator) -> list:
@@ -58,13 +58,13 @@ class QBF:
 
         self._matrix.append(clause)
 
-    def add_variable(self, variable: int, quantification: bool, alias: str = None):
+    def add_variable(self, variable: int, quantification: bool, name: str = None):
         assert variable >= 1
 
-        if alias is None:
-            alias = "x_%d" % variable
+        if name is None:
+            name = "x_%d" % variable
 
-        var = QBFVariable(quantification, alias)
+        var = QBFVariable(quantification, name)
 
         if variable - 1 == len(self._var):
             self._var.append(var)
@@ -79,9 +79,9 @@ class QBF:
         assert variable >= 1
         return self._var[variable - 1].symbol
 
-    def get_alias(self, variable: int) -> str:
+    def get_name(self, variable: int) -> str:
         assert variable >= 1
-        return self._var[variable - 1].alias
+        return self._var[variable - 1].name
 
     def get_variable_latex_operator(self, variable: int) -> str:
         assert variable >= 1
@@ -94,17 +94,20 @@ class QBF:
     def get_variable_count(self) -> int:
         return len(self._var)
 
+    def get_variables(self):
+        return (v for v in self._var)
+
     def _literal_to_variable(self, literal):
         return self._var[_literal_to_index(literal)]
 
     def to_latex_array(self) -> list:
         return [
-            (r"\forall " if self._var[i].quantification == QBF.Q_FORALL else r"\exists ") + self._var[i].alias
+            (r"\forall " if self._var[i].quantification == QBF.Q_FORALL else r"\exists ") + self._var[i].name
             for i in range(self.get_variable_count())
         ] + [":"] + _intersperse([
             "(" + " \\vee ".join([
                 (r"\overline{%s}" if literal < 0 else "%s") %
-                self._literal_to_variable(literal).alias for literal in sorted(clause, key=abs)
+                self._literal_to_variable(literal).name for literal in sorted(clause, key=abs)
             ]) + ")" for clause in self._matrix
         ], r" \wedge ")
 
@@ -128,7 +131,7 @@ class QBF:
     def _latex_clause_arithmetization(self, clause) -> str:
 
         return "1 - " + " ".join([
-            ("(1 - %s)" if literal >= 1 else "%s") % self._literal_to_variable(literal).alias
+            ("(1 - %s)" if literal >= 1 else "%s") % self._literal_to_variable(literal).name
             for literal in sorted(clause, key=abs)
         ])
 

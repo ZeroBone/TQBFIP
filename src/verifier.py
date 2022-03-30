@@ -50,7 +50,7 @@ class DummyObserver(ProtocolObserver):
 
 
 def _log_random_choices(qbf: QBF, random_choices):
-    log_str = ", ".join(("%s := %d" % (qbf.get_alias(var), val) for var, val in random_choices.items()))
+    log_str = ", ".join(("%s := %d" % (qbf.get_name(var), val) for var, val in random_choices.items()))
     logger.info("[V]: Random choices: %s", log_str if log_str else "none")
 
 
@@ -97,12 +97,12 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
         _log_random_choices(qbf, rc)
 
         # noinspection DuplicatedCode
-        logger.info("[V]: Asking prover to send s(%s) = h(%s)", qbf.get_alias(v), qbf.get_alias(v))
+        logger.info("[V]: Asking prover to send s(%s) = h(%s)", qbf.get_name(v), qbf.get_name(v))
 
         s = prover.get_operator_polynomial(current_operator, rc)
 
-        logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(v), _poly_to_str(s))
-        logger.info("[P]: deg(s(%s)) = %s", qbf.get_alias(v), s.degree())
+        logger.info("[P]: Sending s(%s) = %s", qbf.get_name(v), _poly_to_str(s))
+        logger.info("[P]: deg(s(%s)) = %s", qbf.get_name(v), s.degree())
 
         quantification = qbf.get_quantification(v)
 
@@ -140,7 +140,7 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
         a = rng.randrange(p)
         rc[v] = a
 
-        logger.info("[V]: Chose a = %d for variable %s", a, qbf.get_alias(v))
+        logger.info("[V]: Chose a = %d for variable %s", a, qbf.get_name(v))
         _log_random_choices(qbf, rc)
 
         _prev_c = c
@@ -152,9 +152,9 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
         observer.on_new_round(current_operator, s, _prev_c, rc, c)
 
-        for variable_to_linearize in range(1, v + 1):
+        for lin_var in range(1, v + 1):
 
-            current_operator = ProofOperator(v, variable_to_linearize)
+            current_operator = ProofOperator(v, lin_var)
 
             logger.info("-" * 30)
             logger.info(
@@ -165,19 +165,19 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
             # noinspection DuplicatedCode
             logger.info(
                 "[V]: Asking prover to send s(%s) = h(%s)",
-                qbf.get_alias(variable_to_linearize),
-                qbf.get_alias(variable_to_linearize)
+                qbf.get_name(lin_var),
+                qbf.get_name(lin_var)
             )
 
             s = prover.get_operator_polynomial(current_operator, rc)
 
-            logger.info("[P]: Sending s(%s) = %s", qbf.get_alias(variable_to_linearize), _poly_to_str(s))
-            logger.info("[P]: deg(s(%s)) = %s", qbf.get_alias(variable_to_linearize), s.degree())
+            logger.info("[P]: Sending s(%s) = %s", qbf.get_name(lin_var), _poly_to_str(s))
+            logger.info("[P]: deg(s(%s)) = %s", qbf.get_name(lin_var), s.degree())
 
             s_0 = evaluate_s(s, 0, p)
             s_1 = evaluate_s(s, 1, p)
 
-            lin_var_val = rc[variable_to_linearize]
+            lin_var_val = rc[lin_var]
 
             check_sum = (lin_var_val * s_1 + (1 - lin_var_val) * s_0) % p
 
@@ -191,12 +191,12 @@ def run_verifier(qbf: QBF, prover: Prover, p: int,
 
             # choose a from F_p
             a = rng.randrange(p)
-            rc[variable_to_linearize] = a
+            rc[lin_var] = a
 
             logger.info(
                 "[V]: Re-chose a = %d for variable %s (while linearizing it)",
                 a,
-                qbf.get_alias(variable_to_linearize)
+                qbf.get_name(lin_var)
             )
             _log_random_choices(qbf, rc)
 
