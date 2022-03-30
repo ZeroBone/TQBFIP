@@ -1,3 +1,4 @@
+import random
 from manim import *
 from formulas import *
 from prover import ProofOperator, HonestProver
@@ -291,7 +292,23 @@ class AnimatingObserver(ProtocolObserver):
 
             _last_ver_step = ver_step
 
-        self.scene.play(FadeOut(verification_brace), FadeOut(_last_ver_step))
+        self.scene.play(FadeOut(_last_ver_step))
+        self.scene.wait()
+
+        a_var = Variable(
+            random.randrange(self.p),
+            Tex("Picking randomnly $ a $"), num_decimal_places=0)
+
+        a_var.next_to(verification_brace, RIGHT)
+
+        def _randomize_a_var(_a_var):
+            a_var.tracker.set_value(random.randrange(self.p))
+
+        self.scene.play(UpdateFromFunc(a_var, _randomize_a_var))
+        a_var.tracker.set_value(new_rc[operator_variable])
+
+        self.scene.wait(1)
+        self.scene.play(FadeOut(a_var), FadeOut(verification_brace))
 
         # qbf tree and new variable values
 
@@ -351,4 +368,4 @@ class ProtocolScene(Scene):
 
         prover = HonestProver(self.qbf, p)
 
-        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self, 5))
+        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self, 2))
