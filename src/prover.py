@@ -237,26 +237,7 @@ class HonestProver(Prover):
             ))
 
         if operator.is_first_operator():
-
-            _v_0_rc = var_values.copy()
-            _v_1_rc = var_values.copy()
-
-            _v_0_rc[operator.v] = 0
-            _v_1_rc[operator.v] = 1
-
-            _v_0_value = self.eval_polynomial_after_operator(_v_0_rc, operator)
-            _v_1_value = self.eval_polynomial_after_operator(_v_1_rc, operator)
-
-            first_var_quant = self.qbf.get_quantification(1)
-
-            if first_var_quant == QBF.Q_FORALL:
-                _value = _v_0_value * _v_1_value
-            elif first_var_quant == QBF.Q_EXISTS:
-                _value = _v_0_value + _v_1_value
-            else:
-                assert False
-
-            return _value % self.p
+            return self.get_value_of_entire_polynomial()
 
         op = operator.previous_operator()
 

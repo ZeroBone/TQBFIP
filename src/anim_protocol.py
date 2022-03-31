@@ -298,6 +298,7 @@ class AnimatingObserver(ProtocolObserver):
 
         if current_operator.is_last_operator(self.scene.qbf):
             # verifier accepts
+            self.scene.wait(3)
             self.scene.play(FadeOut(verification_brace), FadeOut(_last_ver_step))
             return
         else:
@@ -382,12 +383,14 @@ class ProtocolScene(Scene):
             always_update_mobjects=False,
             random_seed=None,
             skip_animations=False,
-            qbf: QBF = default_example_formula()
+            qbf: QBF = default_example_formula(),
+            rounds_limit: int = 2,
+            seed: int = 0xcafe
     ):
         super().__init__(renderer, camera_class, always_update_mobjects, random_seed, skip_animations)
         self.qbf = qbf
-        self.prover_group = None
-        self.verifier_group = None
+        self.rounds_limit = rounds_limit
+        self.seed = seed
 
     def construct(self):
 
@@ -395,6 +398,11 @@ class ProtocolScene(Scene):
 
         prover = HonestProver(self.qbf, p)
 
-        observer = AnimatingObserver(self, prover)
+        observer = AnimatingObserver(self, prover, self.rounds_limit)
 
-        run_verifier(self.qbf, prover, p, 0xcafe, observer)
+        run_verifier(self.qbf, prover, p, self.seed, observer)
+
+
+if __name__ == "__main__":
+    scene = ProtocolScene(qbf=default_example_formula(), rounds_limit=2, seed=0xcafe)
+    scene.render()
