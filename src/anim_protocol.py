@@ -2,7 +2,7 @@ import random
 from manim import *
 from formulas import *
 from prover import ProofOperator, HonestProver
-from verifier import ProtocolObserver, run_verifier, evaluate_s
+from verifier import ProtocolObserver, run_verifier, evaluate_s, VERIFIER_DEFAULT_SEED
 from qbf_tree import QBFTree
 
 
@@ -385,7 +385,7 @@ class ProtocolScene(Scene):
             skip_animations=False,
             qbf: QBF = default_example_formula(),
             rounds_limit: int = 0,
-            seed: int = 0xdeadbeef
+            seed: int = VERIFIER_DEFAULT_SEED
     ):
         super().__init__(renderer, camera_class, always_update_mobjects, random_seed, skip_animations)
         self.qbf = qbf
@@ -404,5 +404,5 @@ class ProtocolScene(Scene):
 
 
 if __name__ == "__main__":
-    scene = ProtocolScene(qbf=default_example_formula(), rounds_limit=2, seed=0xdeadbeef)
+    scene = ProtocolScene(qbf=default_example_formula(), rounds_limit=2, seed=VERIFIER_DEFAULT_SEED)
     scene.render()

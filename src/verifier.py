@@ -4,6 +4,8 @@ from qbf import QBF
 from prover import Prover, ProofOperator
 
 
+VERIFIER_DEFAULT_SEED = 0xcafe + 0xbeef
+
 logger = logging.getLogger("protocol")
 
 

@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from formulas import *
 from prover import HonestProver
-from verifier import run_verifier
+from verifier import run_verifier, VERIFIER_DEFAULT_SEED
 
 
 def _resolve_root():
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     qbf = default_example_formula()
 
-    seed = int(sys.argv[1]) if len(sys.argv) >= 2 else 0xdeadbeef
+    seed = int(sys.argv[1]) if len(sys.argv) >= 2 else VERIFIER_DEFAULT_SEED
 
     print("Seed: %d. Executing interactive protocol..." % seed)
 
