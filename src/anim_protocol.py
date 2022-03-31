@@ -404,5 +404,5 @@ class ProtocolScene(Scene):
 
 
 if __name__ == "__main__":
-    scene = ProtocolScene(qbf=default_example_formula(), rounds_limit=2, seed=VERIFIER_DEFAULT_SEED)
+    scene = ProtocolScene(qbf=default_example_formula(), rounds_limit=0, seed=VERIFIER_DEFAULT_SEED)
     scene.render()
