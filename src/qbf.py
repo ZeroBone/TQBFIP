@@ -126,7 +126,7 @@ class QBF:
 
             p_phi *= 1 - prod
 
-        return sympy.Poly(p_phi, *[v.symbol for v in self._var], domain=sympy.ZZ)
+        return sympy.Poly(p_phi, *(v.symbol for v in self._var), domain=sympy.ZZ)
 
     def _latex_clause_arithmetization(self, clause) -> str:
 

@@ -338,7 +338,7 @@ class AnimatingObserver(ProtocolObserver):
         new_qbf_tree = QBFTree(
             self._prover,
             new_rc,
-            current_operator.get_leftmost_variable_that_is_not_yet_resolved()
+            current_operator.get_leftmost_not_yet_resolved_variable()
         )
 
         cur_rc_var = self.rc_vars[operator_variable - 1]
@@ -386,6 +386,6 @@ class ProtocolScene(Scene):
 
         prover = HonestProver(self.qbf, p)
 
-        observer = AnimatingObserver(self, prover, 2)
+        observer = AnimatingObserver(self, prover)
 
         run_verifier(self.qbf, prover, p, 0xcafe, observer)

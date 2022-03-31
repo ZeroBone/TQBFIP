@@ -5,11 +5,17 @@ from prover import HonestProver, ProofOperator
 
 class _TextBox:
 
-    def __init__(self, qbf: QBF, cur_var: int, value: int):
+    def __init__(self, qbf: QBF, operator: ProofOperator, value: int):
 
-        self.text = MathTex(qbf.get_variable_latex_operator(cur_var), "[%d]" % value)
+        if operator.is_linearity_operator():
+            _text_latex = "L_{%s}" % qbf.get_name(operator.lv)
+            _text_latex_color = PURPLE_A  # linearization color
+        else:
+            _text_latex = qbf.get_variable_latex_operator(operator.v)
+            _text_latex_color = RED_C if qbf.get_quantification(operator.v) == QBF.Q_FORALL else GOLD_C
 
-        self.text[0].set_color(RED_C if qbf.get_quantification(cur_var) == QBF.Q_FORALL else GOLD_C)
+        self.text = MathTex(_text_latex, "[%d]" % value)
+        self.text[0].set_color(_text_latex_color)
 
         self.text.scale(.75)
 
@@ -42,8 +48,7 @@ class QBFTreeRandomChoiceQuantifierNode(QBFTreeNode):
 
         self._value = prover.eval_polynomial_at_operator(rc, cur_op)
 
-        # TODO: make TextBox support proof operators and display linearity operator there
-        self.text_box = _TextBox(prover.qbf, cur_op.v, self._value)
+        self.text_box = _TextBox(prover.qbf, cur_op, self._value)
 
         children_group = self._v_child.get_object_group()
 
@@ -82,7 +87,7 @@ class QBFTreeQuantifierNode(QBFTreeNode):
 
         self._value = prover.eval_polynomial_at_operator(rc, cur_op)
 
-        self._text_box = _TextBox(prover.qbf, cur_op.v, self._value)
+        self._text_box = _TextBox(prover.qbf, cur_op, self._value)
 
         v_0_group = self.v_0_child.get_object_group()
         v_1_group = self.v_1_child.get_object_group()

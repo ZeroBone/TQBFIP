@@ -9,10 +9,12 @@ def _poly_to_str(poly) -> str:
     return str(poly.as_expr())
 
 
+def _to_poly_simple(result, gens):
+    return sympy.Poly(result, *gens, domain=sympy.ZZ)
+
+
 def _to_poly(result, initial_poly, p: int):
-    return sympy.Poly(result, initial_poly.gens, domain=sympy.ZZ) \
-        .trunc(p) \
-        .exclude()
+    return _to_poly_simple(result, initial_poly.gens).trunc(p).exclude()
 
 
 def linearity_operator(poly, v, p: int):
@@ -62,7 +64,7 @@ class ProofOperator:
     def is_first_operator(self) -> bool:
         return not self.is_linearity_operator() and self.v == 1
 
-    def get_leftmost_variable_that_is_not_yet_resolved(self) -> int:
+    def get_leftmost_not_yet_resolved_variable(self) -> int:
         return max(self.v, self.lv) + 1
 
     def next_quantifier_operator(self):
@@ -210,16 +212,17 @@ class HonestProver(Prover):
 
     def eval_polynomial_after_operator(self, var_values: dict, operator: ProofOperator) -> int:
 
-        eval_subs = {}
-
-        for variable, a in var_values.items():
-            eval_subs[self.qbf.get_symbol(variable)] = a
-
         poly = self._polynomial_after_operator[operator]
 
-        return int(
-            poly.eval(eval_subs).as_poly(poly.gens).LC()
-        ) % self.p
+        gens = (v.symbol for v in self.qbf.get_variables())
+
+        for variable, a in var_values.items():
+
+            eval_subs = {self.qbf.get_symbol(variable): a}
+
+            poly = _to_poly_simple(poly.eval(eval_subs), gens)
+
+        return int(poly.LC()) % self.p
 
     def eval_polynomial_at_operator(self, var_values: dict, operator: ProofOperator = None) -> int:
         # operator = None means evaluate matrix arithmetization
