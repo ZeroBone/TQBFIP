@@ -64,6 +64,9 @@ class ProofOperator:
     def is_first_operator(self) -> bool:
         return not self.is_linearity_operator() and self.v == 1
 
+    def is_last_operator(self, qbf: QBF) -> bool:
+        return self.v == qbf.get_variable_count() and self.lv == qbf.get_variable_count()
+
     def get_leftmost_not_yet_resolved_variable(self) -> int:
         return max(self.v, self.lv) + 1
 

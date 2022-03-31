@@ -276,6 +276,11 @@ class AnimatingObserver(ProtocolObserver):
         else:
             assert False
 
+        if current_operator.is_last_operator(self.scene.qbf):
+            final_step = Tex(r"Proof accepted!")
+            final_step[0].set_color(GREEN_C)
+            verification_steps.append(final_step)
+
         _last_ver_step = None
 
         for ver_step in verification_steps:
@@ -291,8 +296,12 @@ class AnimatingObserver(ProtocolObserver):
 
             _last_ver_step = ver_step
 
-        self.scene.play(FadeOut(_last_ver_step))
-        self.scene.wait()
+        if current_operator.is_last_operator(self.scene.qbf):
+            # verifier accepts
+            self.scene.play(FadeOut(verification_brace), FadeOut(_last_ver_step))
+            return
+        else:
+            self.scene.play(FadeOut(_last_ver_step))
 
         # random picking of a
 
