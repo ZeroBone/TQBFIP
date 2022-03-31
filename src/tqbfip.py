@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from pathlib import Path
 from formulas import *
 from prover import HonestProver
@@ -26,7 +27,7 @@ def _configure_loggers():
         logger.addHandler(fh)
 
 
-def tqbfip(qbf: QBF):
+def tqbfip(qbf: QBF, seed: int):
 
     _configure_loggers()
 
@@ -40,12 +41,21 @@ def tqbfip(qbf: QBF):
 
     prover.log_operator_polynomials()
 
-    accepted = run_verifier(qbf, prover, p, 0xcafe)
+    accepted = run_verifier(qbf, prover, p, seed)
 
     logger.info("-" * 30)
     logger.info("[V]: Proof %s.", "accepted" if accepted else "rejected")
 
 
 if __name__ == "__main__":
+
     qbf = default_example_formula()
-    tqbfip(qbf)
+
+    seed = int(sys.argv[1]) if len(sys.argv) >= 2 else 0xdeadbeef
+
+    print("Seed: %d. Executing interactive protocol..." % seed)
+
+    tqbfip(qbf, seed)
+
+    print("Done!")
+    print("The transcript of the protocol as well as other information can be found in the /logs/ directory.")

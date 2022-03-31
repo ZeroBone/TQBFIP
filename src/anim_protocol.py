@@ -384,8 +384,8 @@ class ProtocolScene(Scene):
             random_seed=None,
             skip_animations=False,
             qbf: QBF = default_example_formula(),
-            rounds_limit: int = 2,
-            seed: int = 0xcafe
+            rounds_limit: int = 0,
+            seed: int = 0xdeadbeef
     ):
         super().__init__(renderer, camera_class, always_update_mobjects, random_seed, skip_animations)
         self.qbf = qbf
@@ -404,5 +404,5 @@ class ProtocolScene(Scene):
 
 
 if __name__ == "__main__":
-    scene = ProtocolScene(qbf=default_example_formula(), rounds_limit=2, seed=0xcafe)
+    scene = ProtocolScene(qbf=default_example_formula(), rounds_limit=2, seed=0xdeadbeef)
     scene.render()
