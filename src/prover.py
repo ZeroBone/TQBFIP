@@ -29,7 +29,7 @@ def exists_operator(poly, v, p: int):
 
 class ProofOperator:
 
-    def __init__(self, variable: int, linearizing_variable: int = 0):
+    def __init__(self, variable: int = 1, linearizing_variable: int = 0):
         assert variable >= 1
         self.v = variable
         self.lv = linearizing_variable  # = 0 if we are applying quantification to the variable
@@ -59,8 +59,27 @@ class ProofOperator:
 
         return self.v
 
+    def is_first_operator(self) -> bool:
+        return not self.is_linearity_operator() and self.v == 1
+
     def get_leftmost_variable_that_is_not_yet_resolved(self) -> int:
         return max(self.v, self.lv) + 1
+
+    def next_quantifier_operator(self):
+        return ProofOperator(self.v + 1)
+
+    def previous_operator(self):
+
+        if self.is_first_operator():
+            return None
+
+        if not self.is_linearity_operator():
+            return ProofOperator(self.v - 1, self.v - 1)
+
+        # we are dealing with a linearity operator
+        # the previous operator may be both a quantifier
+        # as well as a linearity operator
+        return ProofOperator(self.v, self.lv - 1)
 
     def to_string(self, context: QBF) -> str:
 
@@ -85,11 +104,11 @@ class Prover:
     def get_value_of_entire_polynomial(self) -> int:
         raise NotImplementedError()
 
-    def _get_operator_polynomial(self, operator: ProofOperator, verifiers_random_choices: dict):
+    def _get_operator_polynomial(self, operator: ProofOperator, random_choices: dict):
         raise NotImplementedError()
 
-    def get_operator_polynomial(self, operator: ProofOperator, verifiers_random_choices: dict):
-        s = self._get_operator_polynomial(operator, verifiers_random_choices)
+    def get_operator_polynomial(self, operator: ProofOperator, random_choices: dict):
+        s = self._get_operator_polynomial(operator, random_choices)
 
         assert s.is_univariate or s.is_ground, "Prover provided a multivariate s polynomial"
 
@@ -181,4 +200,41 @@ class HonestProver(Prover):
 
             eval_subs[self.qbf.get_symbol(variable)] = a
 
-        return self._polynomial_after_operator[operator].eval(eval_subs)
+        poly = self._polynomial_after_operator[operator]
+
+        return poly\
+            .eval(eval_subs)\
+            .as_poly(poly.gens)\
+            .trunc(self.p)\
+            .exclude()
+
+    def eval_polynomial_after_operator(self, var_values: dict, operator: ProofOperator) -> int:
+
+        eval_subs = {}
+
+        for variable, a in var_values.items():
+            eval_subs[self.qbf.get_symbol(variable)] = a
+
+        poly = self._polynomial_after_operator[operator]
+
+        return int(
+            poly.eval(eval_subs).as_poly(poly.gens).LC()
+        ) % self.p
+
+    def eval_polynomial_at_operator(self, var_values: dict, operator: ProofOperator = None) -> int:
+        # operator = None means evaluate matrix arithmetization
+
+        if operator is None:
+            return self.eval_polynomial_after_operator(var_values, ProofOperator(
+                self.qbf.get_variable_count(),
+                self.qbf.get_variable_count()
+            ))
+
+        if operator.is_first_operator():
+            return self.get_value_of_entire_polynomial()
+
+        op = operator.previous_operator()
+
+        assert op is not None
+
+        return self.eval_polynomial_after_operator(var_values, op)

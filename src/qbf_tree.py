@@ -1,5 +1,6 @@
 from manim import *
 from qbf import QBF
+from prover import HonestProver, ProofOperator
 
 
 class _TextBox:
@@ -23,103 +24,82 @@ class QBFTreeNode:
     def __init__(self):
         pass
 
-    def get_value(self) -> int:
-        raise NotImplementedError()
-
     def get_object_group(self):
         raise NotImplementedError()
 
 
 class QBFTreeRandomChoiceQuantifierNode(QBFTreeNode):
 
-    def __init__(self, qbf: QBF, p: int, rc: dict, first_var: int, cur_var: int):
+    def __init__(self, prover: HonestProver, rc: dict, first_var: int, cur_op: ProofOperator):
         super().__init__()
 
         assert first_var >= 1
-        assert cur_var >= 1
-        assert cur_var < first_var, "the current variable is not a random choice variable"
-        assert cur_var in rc
+        assert cur_op.v >= 1
+        assert cur_op.v < first_var, "the current variable is not a random choice variable"
+        assert cur_op.v in rc
 
-        self.v_child = _construct_node(qbf, p, rc, first_var, cur_var + 1)
+        self._v_child = _construct_node(prover, rc, first_var, cur_op.next_quantifier_operator())
 
-        self._value = self.v_child.get_value()
+        self._value = prover.eval_polynomial_at_operator(rc, cur_op)
 
-        if qbf.get_quantification(cur_var) == QBF.Q_FORALL:
-            self._value *= self._value
-        else:
-            assert qbf.get_quantification(cur_var) == QBF.Q_EXISTS
-            self._value *= 2
+        # TODO: make TextBox support proof operators and display linearity operator there
+        self.text_box = _TextBox(prover.qbf, cur_op.v, self._value)
 
-        self._value %= p
-
-        self.text_box = _TextBox(qbf, cur_var, self._value)
-
-        children_group = self.v_child.get_object_group()
+        children_group = self._v_child.get_object_group()
 
         # children_group.arrange(RIGHT)
         self.text_box.group.next_to(children_group, UP)
 
         self.v_line = Line(self.text_box.group.get_bottom(), children_group.get_top(), color=PURPLE)
 
-    def get_value(self) -> int:
-        return self._value
-
     def get_object_group(self):
 
         return VGroup(
             self.text_box.group,
             self.v_line,
-            self.v_child.get_object_group()
+            self._v_child.get_object_group()
         )
 
 
 class QBFTreeQuantifierNode(QBFTreeNode):
 
-    def __init__(self, qbf: QBF, p: int, rc: dict, first_var: int, cur_var: int):
+    def __init__(self, prover: HonestProver, rc: dict, first_var: int, cur_op: ProofOperator):
         super().__init__()
 
         assert first_var >= 1
-        assert cur_var >= 1
-        assert cur_var >= first_var, "the current variable is a random choice variable"
+        assert not cur_op.is_linearity_operator()
+        assert cur_op.v >= 1
+        assert cur_op.v >= first_var, "the current variable is a random choice variable"
 
         v_0_rc = rc.copy()
         v_1_rc = rc.copy()
 
-        v_0_rc[cur_var] = 0
-        v_1_rc[cur_var] = 1
+        v_0_rc[cur_op.v] = 0
+        v_1_rc[cur_op.v] = 1
 
-        self.v_0_child = _construct_node(qbf, p, v_0_rc, first_var, cur_var + 1)
-        self.v_1_child = _construct_node(qbf, p, v_1_rc, first_var, cur_var + 1)
+        self.v_0_child = _construct_node(prover, v_0_rc, first_var, cur_op.next_quantifier_operator())
+        self.v_1_child = _construct_node(prover, v_1_rc, first_var, cur_op.next_quantifier_operator())
 
-        if qbf.get_quantification(cur_var) == QBF.Q_FORALL:
-            self._value = self.v_0_child.get_value() * self.v_1_child.get_value()
-        else:
-            assert qbf.get_quantification(cur_var) == QBF.Q_EXISTS
-            self._value = self.v_0_child.get_value() + self.v_1_child.get_value()
+        self._value = prover.eval_polynomial_at_operator(rc, cur_op)
 
-        self._value %= p
-
-        self.text_box = _TextBox(qbf, cur_var, self._value)
+        self._text_box = _TextBox(prover.qbf, cur_op.v, self._value)
 
         v_0_group = self.v_0_child.get_object_group()
         v_1_group = self.v_1_child.get_object_group()
 
         children_group = VGroup(v_0_group, v_1_group)
 
-        if cur_var == qbf.get_variable_count():
+        if cur_op.v == prover.qbf.get_variable_count():
             # children are leafes, it would be a good idea to increase the buffer slightly
-            buff = self.text_box.group.width - min(v_0_group.width, v_1_group.width)
+            buff = self._text_box.group.width - min(v_0_group.width, v_1_group.width)
             children_group.arrange(RIGHT, buff=buff)
         else:
             children_group.arrange(RIGHT)
 
-        self.text_box.group.next_to(children_group, UP)
+        self._text_box.group.next_to(children_group, UP)
 
-        self.v_0_line = Line(self.text_box.group.get_left(), v_0_group.get_top(), color=RED_C)
-        self.v_1_line = Line(self.text_box.group.get_right(), v_1_group.get_top(), color=GREEN_C)
-
-    def get_value(self) -> int:
-        return self._value
+        self._v_0_line = Line(self._text_box.group.get_left(), v_0_group.get_top(), color=RED_C)
+        self._v_1_line = Line(self._text_box.group.get_right(), v_1_group.get_top(), color=GREEN_C)
 
     def get_object_group(self):
 
@@ -127,54 +107,49 @@ class QBFTreeQuantifierNode(QBFTreeNode):
         v_1_group = self.v_1_child.get_object_group()
 
         return VGroup(
-            self.text_box.group,
-            VGroup(self.v_0_line, self.v_1_line),
+            self._text_box.group,
+            VGroup(self._v_0_line, self._v_1_line),
             VGroup(v_0_group, v_1_group)
         )
 
 
 class QBFTreeLeafNode(QBFTreeNode):
 
-    def __init__(self, qbf: QBF, p: int, rc: dict):
+    def __init__(self, prover: HonestProver, rc: dict):
         super().__init__()
 
-        eval_subs = {}
+        self._value = prover.eval_polynomial_at_operator(rc)
 
-        for var, val in rc.items():
-            eval_subs[qbf.get_symbol(var)] = val
+        self._text = Integer(self._value, 0).scale(.75)
 
-        arithmetization = qbf.arithmetize_matrix()
-        self._value = int(arithmetization.eval(eval_subs).as_poly(arithmetization.gens).LC())
-        self._value %= p
+        self._box = SurroundingRectangle(self._text, color=GOLD, corner_radius=.1)
 
-        self.text = Integer(self._value, 0).scale(.75)
-
-        self.box = SurroundingRectangle(self.text, color=GOLD, corner_radius=.1)
-
-        VGroup(self.text, self.box).to_edge(DOWN)
-
-    def get_value(self) -> int:
-        return self._value
+        VGroup(self._text, self._box).to_edge(DOWN)
 
     def get_object_group(self):
-        return VGroup(self.text, self.box)
+        return VGroup(self._text, self._box)
 
 
-def _construct_node(qbf: QBF, p: int, rc: dict, first_var: int, cur_var: int = 1) -> QBFTreeNode:
+def _construct_node(
+        prover: HonestProver,
+        rc: dict,
+        first_var: int,
+        cur_op: ProofOperator = ProofOperator()) -> QBFTreeNode:
+
     assert first_var >= 1
-    assert first_var <= qbf.get_variable_count() + 1
-    assert cur_var >= 1
-    assert cur_var <= qbf.get_variable_count() + 1
+    assert first_var <= prover.qbf.get_variable_count() + 1
+    assert cur_op.v >= 1
+    assert cur_op.v <= prover.qbf.get_variable_count() + 1
 
-    if cur_var > qbf.get_variable_count():
-        return QBFTreeLeafNode(qbf, p, rc)
+    if cur_op.v > prover.qbf.get_variable_count():
+        return QBFTreeLeafNode(prover, rc)
 
     # the node is a quantifier node
 
-    if cur_var >= first_var:
-        return QBFTreeQuantifierNode(qbf, p, rc, first_var, cur_var)
+    if cur_op.v >= first_var:
+        return QBFTreeQuantifierNode(prover, rc, first_var, cur_op)
 
-    return QBFTreeRandomChoiceQuantifierNode(qbf, p, rc, first_var, cur_var)
+    return QBFTreeRandomChoiceQuantifierNode(prover, rc, first_var, cur_op)
 
 
 class QBFTree:
@@ -184,19 +159,19 @@ class QBFTree:
     # be evaluated at zeros or ones for all variable assignments
     # before the first_var, the value from the rc dictionary should be used
     # for the calculation
-    def __init__(self, qbf: QBF, p: int, rc: dict, first_var: int):
+    def __init__(self, prover: HonestProver, rc: dict, first_var: int):
         assert first_var >= 1
 
         # if first_variable is one greater than the maximum id of an existent variable
         # then this means that the tree should be built for the matrix
         # which of course means that the tree will be simply one leaf node
-        assert first_var <= qbf.get_variable_count() + 1
+        assert first_var <= prover.qbf.get_variable_count() + 1
 
         for v_with_random_value in range(1, first_var):
             assert v_with_random_value in rc,\
                 "Was expecting value for variable %d" % v_with_random_value
 
-        self.root = _construct_node(qbf, p, rc, first_var)
+        self.root = _construct_node(prover, rc, first_var)
 
     def get_object_group(self):
         return self.root.get_object_group().center()

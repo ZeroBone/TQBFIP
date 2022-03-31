@@ -46,13 +46,15 @@ def _proof_operator_to_mathtex_index(op: ProofOperator):
 class AnimatingObserver(ProtocolObserver):
 
     # rounds_limit = 0 means no limit for the amount of rounds to be animated
-    def __init__(self, scene, rounds_limit: int = 0):
+    def __init__(self, scene, honest_prover: HonestProver, rounds_limit: int = 0):
         super().__init__()
+
+        self.scene = scene
+
+        self._prover = honest_prover
 
         self._rounds_limit = rounds_limit
         self._rounds_counter = 0
-
-        self.scene = scene
 
         self.prover_group = None
 
@@ -142,8 +144,7 @@ class AnimatingObserver(ProtocolObserver):
         # qbf tree
 
         self.qbf_tree = QBFTree(
-            self.scene.qbf,
-            self.p,
+            self._prover,
             {},
             1
         )
@@ -335,8 +336,7 @@ class AnimatingObserver(ProtocolObserver):
         # qbf tree and new variable values
 
         new_qbf_tree = QBFTree(
-            self.scene.qbf,
-            self.p,
+            self._prover,
             new_rc,
             current_operator.get_leftmost_variable_that_is_not_yet_resolved()
         )
@@ -386,4 +386,6 @@ class ProtocolScene(Scene):
 
         prover = HonestProver(self.qbf, p)
 
-        run_verifier(self.qbf, prover, p, 0xcafe, AnimatingObserver(self, 2))
+        observer = AnimatingObserver(self, prover, 2)
+
+        run_verifier(self.qbf, prover, p, 0xcafe, observer)
