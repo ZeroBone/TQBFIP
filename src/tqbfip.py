@@ -26,11 +26,9 @@ def _configure_loggers():
         logger.addHandler(fh)
 
 
-def main():
+def tqbfip(qbf: QBF):
 
     _configure_loggers()
-
-    qbf = default_example_formula()
 
     p = qbf.compute_prime_for_protocol()
 
@@ -40,6 +38,8 @@ def main():
 
     prover = HonestProver(qbf, p)
 
+    prover.log_operator_polynomials()
+
     accepted = run_verifier(qbf, prover, p, 0xcafe)
 
     logger.info("-" * 30)
@@ -47,4 +47,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    qbf = default_example_formula()
+    tqbfip(qbf)

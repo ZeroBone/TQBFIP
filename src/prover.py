@@ -101,55 +101,74 @@ class HonestProver(Prover):
     def __init__(self, qbf: QBF, p: int):
         super().__init__(qbf, p)
 
-        polynomial_after_operator = {}
+        self._polynomial_after_operator = {}
 
         cur_p = qbf.arithmetize_matrix()
-
-        logger.info("Printing (in reverse order) the operator followed by the "
-                    "polynomial to which all further operators evaluate")
 
         # iterate over the proof operator sequence, in reverse order
         for v in range(qbf.get_variable_count(), 0, -1):
 
             for variable_to_linearize in range(v, 0, -1):
                 current_operator = ProofOperator(v, variable_to_linearize)
-                polynomial_after_operator[current_operator] = cur_p
 
-                logger.info("%s: (degree %2s): %s",
-                            current_operator.to_string(qbf),
-                            cur_p.total_degree(),
-                            _poly_to_str(cur_p))
+                assert current_operator not in self._polynomial_after_operator
+                self._polynomial_after_operator[current_operator] = cur_p
 
                 cur_p = linearity_operator(cur_p, self.qbf.get_symbol(variable_to_linearize), self.p)
                 # cur_p is now a polynomial where variable_to_linearize is linearized
 
             current_operator = ProofOperator(v)
-            polynomial_after_operator[current_operator] = cur_p
-
-            logger.info("%s: (degree %2s): %s",
-                        current_operator.to_string(qbf),
-                        cur_p.total_degree(),
-                        _poly_to_str(cur_p))
+            assert current_operator not in self._polynomial_after_operator
+            self._polynomial_after_operator[current_operator] = cur_p
 
             quantification = qbf.get_quantification(v)
 
             if quantification == QBF.Q_FORALL:
                 cur_p = forall_operator(cur_p, self.qbf.get_symbol(v), self.p)
-            else:
-                assert quantification == QBF.Q_EXISTS
+            elif quantification == QBF.Q_EXISTS:
                 cur_p = exists_operator(cur_p, self.qbf.get_symbol(v), self.p)
+            else:
+                assert False
 
             # cur_p is now a polynomial with the quantification applied
 
         assert cur_p.is_ground, "Polynomial at the end of the protocol is not trivial"
         self.entire_polynomial_value = int(cur_p.LC()) % self.p
 
-        logger.info("Value of entire polynomial = %d", self.entire_polynomial_value)
-
-        self._polynomial_after_operator = polynomial_after_operator
-
     def get_value_of_entire_polynomial(self) -> int:
         return self.entire_polynomial_value
+
+    def log_operator_polynomials(self):
+
+        logger.info("Value of entire polynomial = %d", self.entire_polynomial_value)
+
+        logger.info("Printing the operator followed by the "
+                    "polynomial to which all further operators evaluate")
+
+        # iterate over the proof operator sequence
+        for v in range(1, self.qbf.get_variable_count() + 1):
+
+            current_operator = ProofOperator(v)
+
+            assert current_operator in self._polynomial_after_operator
+            cur_p = self._polynomial_after_operator[current_operator]
+
+            logger.info("%s: (degree %2s): %s",
+                        current_operator.to_string(self.qbf),
+                        cur_p.total_degree(),
+                        _poly_to_str(cur_p))
+
+            for lin_var in range(1, v + 1):
+
+                current_operator = ProofOperator(v, lin_var)
+
+                assert current_operator in self._polynomial_after_operator
+                cur_p = self._polynomial_after_operator[current_operator]
+
+                logger.info("%s: (degree %2s): %s",
+                            current_operator.to_string(self.qbf),
+                            cur_p.total_degree(),
+                            _poly_to_str(cur_p))
 
     def _get_operator_polynomial(self, operator: ProofOperator, random_choices: dict):
 
