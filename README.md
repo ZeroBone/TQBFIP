@@ -17,9 +17,9 @@ Overall, this project is intended to be used for educational purposes.
 
 * [NumPy](https://numpy.org/) v1.19 or newer
 * [SymPy](https://www.sympy.org/) 1.10.1 or newer
-* [Manim Community Edition](https://www.manim.community/) v0.15.1 or newer
+* [Manim CE](https://www.manim.community/) v0.15.1 or newer
 
-For the installation of the above libraries, make sure you follow the official guide available on the corresponding website. The Manim Community Edition library is used only for the animation rendering, you don't have to install it if you don't want to render animations.
+For the installation of the above libraries, make sure you follow the official guide available on the corresponding website. The Manim CE library is used only for the animation rendering, you don't have to install it if you don't want to render animations.
 
 ## Usage
 
@@ -49,7 +49,7 @@ from the `src` directory. This will render the animation in Full HD using defaul
 manim -pql anim_arithmetization.py
 ```
 
-command. Here, `-pql` stands for **p**lay, after rendering in **q**uality **l**ow. If you don't want the animation to be automatically played once rendering is complete, remove **p**. The rendering quality can be also changed from **l**ow to **m**edium or **h**igh. For more information regarding the `manim` command, see the [Manim documentation](https://docs.manim.community/en/stable/).
+command. Here, `-pql` stands for **p**lay, after rendering in **q**uality **l**ow. If you don't want the animation to be automatically played once rendering is complete, remove **p**. The rendering quality can be also changed from **l**ow to **m**edium or **h**igh. For more information regarding the `manim` command, see the [Manim CE documentation](https://docs.manim.community/en/stable/).
 
 The resulting animation will build the arithmetizing polynomial step-by-step resulting in, for example,
 
@@ -98,8 +98,4 @@ The entire animation can be viewed [here](https://youtu.be/YbnZld9wjMM).
 
 Copyright (c) 2022 Alexander Mayorov.
 
-This project is licensed under the MIT License.
-
-Please leave a license and copyright notice if you use or modify this software or parts of it.
-
-See the `LICENSE` file for more details.
+This project is licensed under the MIT License. Please leave a license and copyright notice if you use this software. See the `LICENSE` file for more details.

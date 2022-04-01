@@ -142,7 +142,10 @@ class QBF:
             r"\cdot \\"
         )
 
-    def compute_prime_for_protocol(self):
+    # Warning: this method does not always compute the prime modulo which
+    # the protocol will always be successful, given that the formula is true
+    # to generate the prime for the protocol, use the HonestProver class
+    def get_lower_bound_for_protocol_prime(self):
         return next_prime(1 << self.get_variable_count())
 
     def get_clause_count(self) -> int:

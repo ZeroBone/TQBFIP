@@ -31,17 +31,15 @@ def tqbfip(qbf: QBF, seed: int):
 
     _configure_loggers()
 
-    p = qbf.compute_prime_for_protocol()
-
     logger = logging.getLogger("protocol")
 
-    logger.info("Working modulo prime p = %d", p)
+    prover = HonestProver(qbf)
 
-    prover = HonestProver(qbf, p)
+    logger.info("Working modulo prime p = %d", prover.p)
 
     prover.log_operator_polynomials()
 
-    accepted = run_verifier(qbf, prover, p, seed)
+    accepted = run_verifier(qbf, prover, prover.p, seed)
 
     logger.info("-" * 30)
     logger.info("[V]: Proof %s.", "accepted" if accepted else "rejected")

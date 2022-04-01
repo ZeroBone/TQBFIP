@@ -394,13 +394,11 @@ class ProtocolScene(Scene):
 
     def construct(self):
 
-        p = self.qbf.compute_prime_for_protocol()
-
-        prover = HonestProver(self.qbf, p)
+        prover = HonestProver(self.qbf)
 
         observer = AnimatingObserver(self, prover, self.rounds_limit)
 
-        run_verifier(self.qbf, prover, p, self.seed, observer)
+        run_verifier(self.qbf, prover, prover.p, self.seed, observer)
 
 
 if __name__ == "__main__":

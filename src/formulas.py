@@ -77,3 +77,27 @@ def forall_quantified_tautology():
     qbf.add_clause({1, -1})
 
     return qbf
+
+
+# this method generates a formula such that the polynomial
+# evaluates to 37, and the formula itself contains 5 variables, so
+# we would work modulo first prime number greater than 2^5 = 32,
+# which is exactly 37 which is 0 mod 37
+def prime_eval_formula():
+
+    qbf = QBF()
+
+    x, y, z, u, w = range(1, 6)
+
+    qbf.add_variable(x, QBF.Q_EXISTS, "x")
+    qbf.add_variable(y, QBF.Q_FORALL, "y")
+    qbf.add_variable(z, QBF.Q_EXISTS, "z")
+    qbf.add_variable(u, QBF.Q_EXISTS, "u")
+    qbf.add_variable(w, QBF.Q_EXISTS, "w")
+
+    qbf.add_clause({x, -z})
+    qbf.add_clause({-z, -u, -w})
+    qbf.add_clause({-x, -y, -u, -w})
+    qbf.add_clause({-y, -z})
+
+    return qbf
