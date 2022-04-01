@@ -169,6 +169,12 @@ class HonestProver(Prover):
 
             self.entire_polynomial_value %= self.p
 
+        # prime p is not computed
+        # it is a good idea to reduce all coefficients appearing in the polynomials
+        # modulo p, to simplify further computations
+        for op, poly in self._polynomial_after_operator.items():
+            self._polynomial_after_operator[op] = poly.trunc(self.p)
+
     def get_value_of_entire_polynomial(self) -> int:
         return self.entire_polynomial_value
 

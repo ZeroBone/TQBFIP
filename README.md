@@ -90,7 +90,7 @@ The animation consists of the following parts:
 * In the center of the animation, the sequence of proof operators is visualized using a tree. This visualization allows us to very clearly see, in particular, the connection between `c` and the sequence of proof operators, or, in other words, value of what part of the polynomial is being currently discussed between the prover and the verifier.
 * In the bottom corners, the `V` and `P` stand for verifier and prover, respectively. Between these labels, the communication is visualized. In particular, it is visualized which messages both parties exchange and how the verifier checks that what the prover says is correct.
 
-The entire animation can be viewed [here](https://youtu.be/YbnZld9wjMM).
+The entire animation can be viewed [on YouTube](https://youtu.be/YbnZld9wjMM).
 
 **Warning**: It is not recommended to animate arithmetization or the interactive proof for qbf sentences with more than 4 variables or clauses. The reason is that all parts of the animation may no longer fit on the screen.
 

@@ -79,10 +79,27 @@ def forall_quantified_tautology():
     return qbf
 
 
+def exploding_value_tautology():
+
+    qbf = QBF()
+
+    x, y, z, w, u = range(1, 6)
+
+    qbf.add_variable(x, QBF.Q_FORALL, "x")
+    qbf.add_variable(y, QBF.Q_FORALL, "y")
+    qbf.add_variable(z, QBF.Q_FORALL, "z")
+    qbf.add_variable(w, QBF.Q_FORALL, "w")
+    qbf.add_variable(u, QBF.Q_EXISTS, "u")
+
+    qbf.add_clause({u, -u})
+
+    return qbf
+
+
 # this method generates a formula such that the polynomial
 # evaluates to 37, and the formula itself contains 5 variables, so
-# we would work modulo first prime number greater than 2^5 = 32,
-# which is exactly 37 which is 0 mod 37
+# we would first try to work modulo first prime number
+# greater than 2^5 = 32, which is exactly 37 which is 0 mod 37
 def prime_eval_formula():
 
     qbf = QBF()
