@@ -1,13 +1,13 @@
 # TQBFIP
 
-In complexity theory, it is well known that IP = PSPACE ([Shamir's Theorem](https://dl.acm.org/doi/10.1145/146585.146609)). It is not hard to see why IP is contained in PSPACE, so it suffices to show that PSPACE is contained in IP, which is done by constructing an interactive proof for TQBF (IP is closed under polynomial-time Karp reductions). This project contains an implementation of the interactive proof protocol for TQBF presented in [Shamir's paper](https://dl.acm.org/doi/10.1145/146585.146609), with the use of the linearization operator introduced by Shen in [this paper](https://dl.acm.org/doi/10.1145/146585.146613). For example, this project can be used to obtain a concrete interactive transcript of the communication between the prover and the verifier (see below for more details).
+In complexity theory, it is well known that IP = PSPACE ([Shamir's Theorem](https://dl.acm.org/doi/10.1145/146585.146609)). It is not hard to see why IP is contained in PSPACE, so it suffices to show that PSPACE is contained in IP, which is done by constructing an interactive proof for TQBF (IP is closed under polynomial-time Karp reductions). This project contains an implementation of the mentioned interactive proof protocol for TQBF presented in [Shamir's paper](https://dl.acm.org/doi/10.1145/146585.146609), with the use of the linearization operator introduced by Shen in [this paper](https://dl.acm.org/doi/10.1145/146585.146613). For example, this project can be used to obtain a concrete interactive transcript of the communication between the prover and the verifier (see below for more details).
 
 Apart from the implementation of the protocol itself, this project contains a clean, detailed & generic renderer of a video animation for the entire protocol. The goal of this animation is to visualize how exactly everything works in the protocol, both before as well as during the communication. Concretely, the following stages are animated:
 
 * Arithmetization, that is, the conversion of the QBF matrix into a polynomial
 * Communication between the prover and the verifier, that is, how the prover shows the validity of the QBF sentence and how the verifier interactively checks that the proof being presented is indeed correct.
 
-Overall, this project is intended to be used for educational purposes.
+Overall, this project is intended to be used for educational purposes. See [this blog post](https://zerobone.net/blog/cs/ip-pspace/) for a clear description of the protocol, the relevant technical details and the visualizations generated using this project.
 
 ## Installation
 
@@ -83,16 +83,11 @@ Here are some screenshots from the animation that gets produced for the above ex
 
 ![Screenshot from the arithmetization animation](screenshots/protocol_04.jpg)
 
-The animation consists of the following parts:
-
-* At the very top, the sequence of proof operators (with sprinkled-in linearization operators) for the formula is written down. In every round of communication, the proof operator corresponding to the beginning of the polynomial being considered, is highlighted with a yellow surrounding rectangle.
-* Below the sequence of proof operators, the values that the verifier has assigned to variables so far, are displayed. The `c` variable on the right is what value the verifier expects the polynomial to take. In other words, the verifier expects the prover to show that the polynomial evaluates to `c`. If the prover fails to show that, the verifier will reject the proof. The `p` variable is constant and just represents the size of the finite field we are working in.
-* In the center of the animation, the sequence of proof operators is visualized using a tree. This visualization allows us to very clearly see, in particular, the connection between `c` and the sequence of proof operators, or, in other words, value of what part of the polynomial is being currently discussed between the prover and the verifier.
-* In the bottom corners, the `V` and `P` stand for verifier and prover, respectively. Between these labels, the communication is visualized. In particular, it is visualized which messages both parties exchange and how the verifier checks that what the prover says is correct.
-
 The entire animation can be viewed [on YouTube](https://youtu.be/YbnZld9wjMM).
 
-**Warning**: It is not recommended to animate arithmetization or the interactive proof when the qbf sentence contains more than 4 variables clauses. The reason is that all parts of the animation may no longer fit on the screen.
+**Note**: [This post](https://zerobone.net/blog/cs/ip-pspace/) contains both all the formal notation used in the visualization as well as a description of what each part of the animation means.
+
+**Warning**: It is not recommended to animate arithmetization or the interactive proof when the QBF sentence contains more than 4 variables or clauses. The reason is that all parts of the animation may simply no longer fit on the screen.
 
 ## Copyright
 
