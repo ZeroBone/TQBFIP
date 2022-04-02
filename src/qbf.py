@@ -50,7 +50,7 @@ class QBF:
         self._var = []
         self._matrix = []
 
-    def add_clause(self, clause: set):
+    def add_clause(self, clause: set, /):
 
         for literal in clause:
             if not self._variable_defined(_literal_to_variable(literal)):
@@ -58,7 +58,7 @@ class QBF:
 
         self._matrix.append(clause)
 
-    def add_variable(self, variable: int, quantification: bool, name: str = None):
+    def add_variable(self, variable: int, /, quantification: bool, name: str = None):
         assert variable >= 1
 
         if name is None:

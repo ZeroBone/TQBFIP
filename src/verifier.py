@@ -66,7 +66,7 @@ def evaluate_s(s, x: int, p: int) -> int:
     return int(s.eval(x).as_poly(s.gens).LC()) % p
 
 
-def run_verifier(qbf: QBF, prover: Prover, p: int,
+def run_verifier(qbf: QBF, /, prover: Prover, p: int, *,
                  seed: int = None, observer: ProtocolObserver = DummyObserver()):
 
     observer.p = p

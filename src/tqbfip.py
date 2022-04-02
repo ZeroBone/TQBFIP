@@ -27,7 +27,7 @@ def _configure_loggers():
         logger.addHandler(fh)
 
 
-def tqbfip(qbf: QBF, seed: int):
+def tqbfip(qbf: QBF, /, *, seed: int):
 
     _configure_loggers()
 
@@ -39,7 +39,7 @@ def tqbfip(qbf: QBF, seed: int):
 
     prover.log_operator_polynomials()
 
-    accepted = run_verifier(qbf, prover, prover.p, seed)
+    accepted = run_verifier(qbf, prover, prover.p, seed=seed)
 
     logger.info("-" * 30)
     logger.info("[V]: Proof %s.", "accepted" if accepted else "rejected")
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     print("Seed: %d. Executing interactive protocol..." % seed)
 
-    tqbfip(qbf, seed)
+    tqbfip(qbf, seed=seed)
 
     print("Done!")
     print("The transcript of the protocol as well as other information can be found in the /logs/ directory.")

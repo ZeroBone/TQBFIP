@@ -92,7 +92,7 @@ The animation consists of the following parts:
 
 The entire animation can be viewed [on YouTube](https://youtu.be/YbnZld9wjMM).
 
-**Warning**: It is not recommended to animate arithmetization or the interactive proof for qbf sentences with more than 4 variables or clauses. The reason is that all parts of the animation may no longer fit on the screen.
+**Warning**: It is not recommended to animate arithmetization or the interactive proof when the qbf sentence contains more than 4 variables clauses. The reason is that all parts of the animation may no longer fit on the screen.
 
 ## Copyright
 

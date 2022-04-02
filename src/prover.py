@@ -123,7 +123,7 @@ class Prover:
 
 class HonestProver(Prover):
 
-    def __init__(self, qbf: QBF):
+    def __init__(self, /, qbf: QBF):
         super().__init__(qbf, 0)
 
         self._polynomial_after_operator = {}

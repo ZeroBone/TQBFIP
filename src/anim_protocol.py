@@ -398,7 +398,7 @@ class ProtocolScene(Scene):
 
         observer = AnimatingObserver(self, prover, self.rounds_limit)
 
-        run_verifier(self.qbf, prover, prover.p, self.seed, observer)
+        run_verifier(self.qbf, prover, prover.p, seed=self.seed, observer=observer)
 
 
 if __name__ == "__main__":
