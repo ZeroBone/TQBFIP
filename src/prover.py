@@ -74,6 +74,9 @@ class ProofOperator:
     def next_quantifier_operator(self):
         return ProofOperator(self.v + 1)
 
+    def get_round_number(self) -> int:
+        return (self.v * (self.v - 1) // 2) + self.v + self.lv
+
     def previous_operator(self):
 
         if self.is_first_operator():

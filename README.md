@@ -7,7 +7,7 @@ Apart from the implementation of the protocol itself, this project contains a cl
 * Arithmetization, that is, the conversion of the QBF matrix into a polynomial
 * Communication between the prover and the verifier, that is, how the prover shows the validity of the QBF sentence and how the verifier interactively checks that the proof being presented is indeed correct.
 
-Overall, this project is intended to be used for educational purposes. See [this blog post](https://zerobone.net/blog/cs/ip-pspace/) for a clear description of the protocol, the relevant technical details and the visualizations generated using this project.
+Overall, this project is intended to be used for educational purposes. See [this blog post](https://zerobone.net/blog/cs/ip-pspace/) for a clear description of the protocol, the visualizations generated using this project, the relevant notation and technical details.
 
 ## Installation
 

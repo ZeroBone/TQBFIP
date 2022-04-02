@@ -95,7 +95,11 @@ def run_verifier(qbf: QBF, /, prover: Prover, p: int, *,
         current_operator = ProofOperator(v)
 
         logger.info("-" * 30)
-        logger.info("Starting new round. Current operator: %s", current_operator.to_string(qbf))
+        logger.info(
+            "Starting round %d. Current operator: %s",
+            current_operator.get_round_number(),
+            current_operator.to_string(qbf)
+        )
         _log_random_choices(qbf, rc)
 
         # noinspection DuplicatedCode
@@ -160,7 +164,8 @@ def run_verifier(qbf: QBF, /, prover: Prover, p: int, *,
 
             logger.info("-" * 30)
             logger.info(
-                "Starting new round. Current operator: %s",
+                "Starting round %d. Current operator: %s",
+                current_operator.get_round_number(),
                 current_operator.to_string(qbf)
             )
 

@@ -26,10 +26,8 @@ def _get_proof_operators_mathtex(qbf: QBF):
 
         if qbf.get_quantification(v) == QBF.Q_FORALL:
             mt[pos + v - 1].set_color(RED_C)
-            # forall_indices.append(len(po))
         else:
             assert qbf.get_quantification(v) == QBF.Q_EXISTS
-            # exists_indices.append(len(po))
             mt[pos + v - 1].set_color(GOLD_C)
 
         # color linearization operators
