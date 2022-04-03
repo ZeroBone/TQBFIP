@@ -309,7 +309,7 @@ class AnimatingObserver(ProtocolObserver):
 
         a_var = Variable(
             random.randrange(self.p),
-            Tex("Picking randomnly $ a $"), num_decimal_places=0)
+            Tex("Picking randomly $ a $"), num_decimal_places=0)
 
         a_var.next_to(verification_brace, RIGHT)
 
