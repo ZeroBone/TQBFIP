@@ -73,7 +73,9 @@ manim -pql anim_protocol.py
 
 in the `src` directory. Rendering this animation will take considerably more time compared to the arithmetization animation discussed above. If you only need to animate a few first rounds, you can specify the amount of rounds to be animated via the `rounds_limit` parameter in the `ProtocolScene` constructor (`anim_protocol.py` module). If this parameter is set to `0` which is the default value, all interactive rounds will be animated.
 
-Here are some screenshots from the animation that gets produced for the above example formula:
+Likewise, the formula for which the protocol is to be visualized can be specified via the `qbf` parameter, which by default is the above example formula `qbf=default_example_formula()`.
+
+Here are some screenshots from the animation that gets produced for the same formula that was arithmetized above:
 
 ![Screenshot from the arithmetization animation](screenshots/protocol_01.jpg)
 
@@ -83,7 +85,7 @@ Here are some screenshots from the animation that gets produced for the above ex
 
 ![Screenshot from the arithmetization animation](screenshots/protocol_04.jpg)
 
-The entire animation is available [on YouTube](https://youtu.be/gSWT3DOiQtk).
+The entire animation for this example is available [on YouTube](https://youtu.be/gSWT3DOiQtk).
 
 **Note**: [This post](https://zerobone.net/blog/cs/ip-pspace/) contains both all the formal notation used in the visualization as well as a description of what each part of the animation means.
 
